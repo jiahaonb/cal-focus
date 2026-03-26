@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<Page
+    x:Class="CalFocus.App.Views.Pages.ReminderPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    mc:Ignorable="d">
+    <Grid Padding="24">
+        <StackPanel Spacing="8">
+            <TextBlock FontSize="28" FontWeight="SemiBold" Text="提醒事项" />
+            <TextBlock Opacity="0.8" Text="这里将承载提醒创建、重复规则与通知设置。" />
+        </StackPanel>
+    </Grid>
+</Page>
+

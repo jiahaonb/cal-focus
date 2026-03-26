@@ -1,0 +1,26 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Folder Name="/src/">
+    <Project Path="src/CalFocus.App/CalFocus.App.csproj">
+      <Platform Solution="*|Any CPU" Project="x86" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Build Solution="Release|x64" Project="false" />
+      <Deploy Solution="Debug|x64" />
+    </Project>
+    <Project Path="src/CalFocus.Core/CalFocus.Core.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="src/CalFocus.Infrastructure/CalFocus.Infrastructure.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="src/CalFocus.Theming/CalFocus.Theming.csproj">
+      <Platform Solution="Debug|x64" Project="x64" />
+    </Project>
+    <Project Path="src/CalFocus.Widgets/CalFocus.Widgets.csproj">
+      <Platform Solution="Debug|x64" Project="x64" />
+    </Project>
+  </Folder>
+</Solution>

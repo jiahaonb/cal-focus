@@ -1,0 +1,15 @@
+D:\Recently\cal-focus\src\CalFocus.Theming\bin\x64\Debug\net10.0\CalFocus.Theming.deps.json
+D:\Recently\cal-focus\src\CalFocus.Theming\bin\x64\Debug\net10.0\CalFocus.Theming.dll
+D:\Recently\cal-focus\src\CalFocus.Theming\bin\x64\Debug\net10.0\CalFocus.Theming.pdb
+D:\Recently\cal-focus\src\CalFocus.Theming\bin\x64\Debug\net10.0\CalFocus.Core.dll
+D:\Recently\cal-focus\src\CalFocus.Theming\bin\x64\Debug\net10.0\CalFocus.Core.pdb
+D:\Recently\cal-focus\src\CalFocus.Theming\obj\x64\Debug\net10.0\CalFocus.Theming.csproj.AssemblyReference.cache
+D:\Recently\cal-focus\src\CalFocus.Theming\obj\x64\Debug\net10.0\CalFocus.Theming.GeneratedMSBuildEditorConfig.editorconfig
+D:\Recently\cal-focus\src\CalFocus.Theming\obj\x64\Debug\net10.0\CalFocus.Theming.AssemblyInfoInputs.cache
+D:\Recently\cal-focus\src\CalFocus.Theming\obj\x64\Debug\net10.0\CalFocus.Theming.AssemblyInfo.cs
+D:\Recently\cal-focus\src\CalFocus.Theming\obj\x64\Debug\net10.0\CalFocus.Theming.csproj.CoreCompileInputs.cache
+D:\Recently\cal-focus\src\CalFocus.Theming\obj\x64\Debug\net10.0\CalFocus.4007041E.Up2Date
+D:\Recently\cal-focus\src\CalFocus.Theming\obj\x64\Debug\net10.0\CalFocus.Theming.dll
+D:\Recently\cal-focus\src\CalFocus.Theming\obj\x64\Debug\net10.0\refint\CalFocus.Theming.dll
+D:\Recently\cal-focus\src\CalFocus.Theming\obj\x64\Debug\net10.0\CalFocus.Theming.pdb
+D:\Recently\cal-focus\src\CalFocus.Theming\obj\x64\Debug\net10.0\ref\CalFocus.Theming.dll

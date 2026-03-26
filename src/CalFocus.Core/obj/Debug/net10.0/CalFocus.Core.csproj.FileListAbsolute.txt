@@ -1,0 +1,11 @@
+d:\Recently\cal-focus\src\CalFocus.Core\bin\Debug\net10.0\CalFocus.Core.deps.json
+d:\Recently\cal-focus\src\CalFocus.Core\bin\Debug\net10.0\CalFocus.Core.dll
+d:\Recently\cal-focus\src\CalFocus.Core\bin\Debug\net10.0\CalFocus.Core.pdb
+d:\Recently\cal-focus\src\CalFocus.Core\obj\Debug\net10.0\CalFocus.Core.GeneratedMSBuildEditorConfig.editorconfig
+d:\Recently\cal-focus\src\CalFocus.Core\obj\Debug\net10.0\CalFocus.Core.AssemblyInfoInputs.cache
+d:\Recently\cal-focus\src\CalFocus.Core\obj\Debug\net10.0\CalFocus.Core.AssemblyInfo.cs
+d:\Recently\cal-focus\src\CalFocus.Core\obj\Debug\net10.0\CalFocus.Core.csproj.CoreCompileInputs.cache
+d:\Recently\cal-focus\src\CalFocus.Core\obj\Debug\net10.0\CalFocus.Core.dll
+d:\Recently\cal-focus\src\CalFocus.Core\obj\Debug\net10.0\refint\CalFocus.Core.dll
+d:\Recently\cal-focus\src\CalFocus.Core\obj\Debug\net10.0\CalFocus.Core.pdb
+d:\Recently\cal-focus\src\CalFocus.Core\obj\Debug\net10.0\ref\CalFocus.Core.dll

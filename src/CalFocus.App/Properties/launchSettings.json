@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "CalFocus.App (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "CalFocus.App (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

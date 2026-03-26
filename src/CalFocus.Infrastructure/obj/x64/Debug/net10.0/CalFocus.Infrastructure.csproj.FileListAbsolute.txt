@@ -1,0 +1,15 @@
+D:\Recently\cal-focus\src\CalFocus.Infrastructure\bin\x64\Debug\net10.0\CalFocus.Infrastructure.deps.json
+D:\Recently\cal-focus\src\CalFocus.Infrastructure\bin\x64\Debug\net10.0\CalFocus.Infrastructure.dll
+D:\Recently\cal-focus\src\CalFocus.Infrastructure\bin\x64\Debug\net10.0\CalFocus.Infrastructure.pdb
+D:\Recently\cal-focus\src\CalFocus.Infrastructure\bin\x64\Debug\net10.0\CalFocus.Core.dll
+D:\Recently\cal-focus\src\CalFocus.Infrastructure\bin\x64\Debug\net10.0\CalFocus.Core.pdb
+D:\Recently\cal-focus\src\CalFocus.Infrastructure\obj\x64\Debug\net10.0\CalFocus.Infrastructure.csproj.AssemblyReference.cache
+D:\Recently\cal-focus\src\CalFocus.Infrastructure\obj\x64\Debug\net10.0\CalFocus.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+D:\Recently\cal-focus\src\CalFocus.Infrastructure\obj\x64\Debug\net10.0\CalFocus.Infrastructure.AssemblyInfoInputs.cache
+D:\Recently\cal-focus\src\CalFocus.Infrastructure\obj\x64\Debug\net10.0\CalFocus.Infrastructure.AssemblyInfo.cs
+D:\Recently\cal-focus\src\CalFocus.Infrastructure\obj\x64\Debug\net10.0\CalFocus.Infrastructure.csproj.CoreCompileInputs.cache
+D:\Recently\cal-focus\src\CalFocus.Infrastructure\obj\x64\Debug\net10.0\CalFocus.FB925B22.Up2Date
+D:\Recently\cal-focus\src\CalFocus.Infrastructure\obj\x64\Debug\net10.0\CalFocus.Infrastructure.dll
+D:\Recently\cal-focus\src\CalFocus.Infrastructure\obj\x64\Debug\net10.0\refint\CalFocus.Infrastructure.dll
+D:\Recently\cal-focus\src\CalFocus.Infrastructure\obj\x64\Debug\net10.0\CalFocus.Infrastructure.pdb
+D:\Recently\cal-focus\src\CalFocus.Infrastructure\obj\x64\Debug\net10.0\ref\CalFocus.Infrastructure.dll

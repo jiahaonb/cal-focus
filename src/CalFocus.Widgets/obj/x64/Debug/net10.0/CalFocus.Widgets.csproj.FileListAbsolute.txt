@@ -1,0 +1,15 @@
+D:\Recently\cal-focus\src\CalFocus.Widgets\bin\x64\Debug\net10.0\CalFocus.Widgets.deps.json
+D:\Recently\cal-focus\src\CalFocus.Widgets\bin\x64\Debug\net10.0\CalFocus.Widgets.dll
+D:\Recently\cal-focus\src\CalFocus.Widgets\bin\x64\Debug\net10.0\CalFocus.Widgets.pdb
+D:\Recently\cal-focus\src\CalFocus.Widgets\bin\x64\Debug\net10.0\CalFocus.Core.dll
+D:\Recently\cal-focus\src\CalFocus.Widgets\bin\x64\Debug\net10.0\CalFocus.Core.pdb
+D:\Recently\cal-focus\src\CalFocus.Widgets\obj\x64\Debug\net10.0\CalFocus.Widgets.csproj.AssemblyReference.cache
+D:\Recently\cal-focus\src\CalFocus.Widgets\obj\x64\Debug\net10.0\CalFocus.Widgets.GeneratedMSBuildEditorConfig.editorconfig
+D:\Recently\cal-focus\src\CalFocus.Widgets\obj\x64\Debug\net10.0\CalFocus.Widgets.AssemblyInfoInputs.cache
+D:\Recently\cal-focus\src\CalFocus.Widgets\obj\x64\Debug\net10.0\CalFocus.Widgets.AssemblyInfo.cs
+D:\Recently\cal-focus\src\CalFocus.Widgets\obj\x64\Debug\net10.0\CalFocus.Widgets.csproj.CoreCompileInputs.cache
+D:\Recently\cal-focus\src\CalFocus.Widgets\obj\x64\Debug\net10.0\CalFocus.BB3FF36C.Up2Date
+D:\Recently\cal-focus\src\CalFocus.Widgets\obj\x64\Debug\net10.0\CalFocus.Widgets.dll
+D:\Recently\cal-focus\src\CalFocus.Widgets\obj\x64\Debug\net10.0\refint\CalFocus.Widgets.dll
+D:\Recently\cal-focus\src\CalFocus.Widgets\obj\x64\Debug\net10.0\CalFocus.Widgets.pdb
+D:\Recently\cal-focus\src\CalFocus.Widgets\obj\x64\Debug\net10.0\ref\CalFocus.Widgets.dll
