@@ -20,7 +20,9 @@ namespace CalFocus.App
         private readonly IDatabaseInitializer _databaseInitializer;
         private readonly IAppLogger _logger;
         private readonly StartupLaunchService _startupLaunchService;
+        private readonly TrayNotificationPreferenceService _trayNotificationPreferenceService;
 
+        public ScheduleBoardService ScheduleBoardService { get; }
         public WidgetHostService WidgetHostService { get; }
         public DesktopWidgetManager DesktopWidgetManager { get; }
 
@@ -32,6 +34,11 @@ namespace CalFocus.App
             _databaseInitializer = new SqliteDatabaseInitializer(_appDataPathService);
             _logger = new FileAppLogger(_appDataPathService);
             _startupLaunchService = new StartupLaunchService();
+            _trayNotificationPreferenceService = new TrayNotificationPreferenceService(_appDataPathService);
+            
+            // 注册 ScheduleRepository 并创建 ScheduleBoardService
+            IScheduleRepository scheduleRepository = new ScheduleRepository(_appDataPathService);
+            ScheduleBoardService = new ScheduleBoardService(scheduleRepository);
 
             var jsonStore = new JsonFileStore();
             var widgetLayoutService = new WidgetLayoutService(_appDataPathService, jsonStore);
@@ -72,6 +79,8 @@ namespace CalFocus.App
                     AreWidgetsVisible,
                     ToggleStartup,
                     IsStartupEnabled,
+                    ToggleTrayNotifications,
+                    IsTrayNotificationsEnabled,
                     ExitApplication);
 
                 _logger.LogInfo("应用启动成功。托盘服务已初始化。");
@@ -113,6 +122,18 @@ namespace CalFocus.App
         private bool IsStartupEnabled()
         {
             return _startupLaunchService.IsEnabled();
+        }
+
+        private bool ToggleTrayNotifications()
+        {
+            var enabled = _trayNotificationPreferenceService.Toggle();
+            _logger.LogInfo(enabled ? "托盘气泡提示已开启。" : "托盘气泡提示已关闭。");
+            return enabled;
+        }
+
+        private bool IsTrayNotificationsEnabled()
+        {
+            return _trayNotificationPreferenceService.IsEnabled();
         }
 
         private void ExitApplication()

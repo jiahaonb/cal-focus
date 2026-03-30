@@ -7,120 +7,206 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     mc:Ignorable="d">
     <Grid Padding="16,10,16,16">
-        <Border CornerRadius="22"
-                BorderThickness="1"
-                BorderBrush="#33FFFFFF"
-                Background="#2A101827"
-                Padding="16">
-            <Grid ColumnSpacing="14">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.05*" />
-                    <ColumnDefinition Width="1*" />
-                    <ColumnDefinition Width="1.35*" />
-                </Grid.ColumnDefinitions>
+        <Grid ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="320" />
+            </Grid.ColumnDefinitions>
 
-                <Grid Grid.Column="0" RowSpacing="12">
+            <!-- 左栏：时间和天气 -->
+            <Border Grid.Column="0"
+                    CornerRadius="22"
+                    BorderThickness="1"
+                    BorderBrush="#33FFFFFF"
+                    Background="#2A101827"
+                    Padding="16">
+                <Grid RowSpacing="16">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <TextBlock x:Name="ClockText"
-                               Grid.Row="0"
-                               FontSize="48"
-                               FontWeight="SemiBold"
-                               Text="00:00:00" />
+                    <!-- 当前时间 -->
+                    <StackPanel Grid.Row="0" Spacing="8">
+                        <TextBlock x:Name="CurrentTimeText" 
+                                   FontSize="48" 
+                                   FontWeight="Bold" 
+                                   Text="14:30"
+                                   Foreground="#E0E0E0" />
+                        <TextBlock x:Name="CurrentDateText" 
+                                   FontSize="14" 
+                                   Opacity="0.8" 
+                                   Text="2026年3月29日 星期日" />
+                    </StackPanel>
 
-                    <Border Grid.Row="2"
-                            CornerRadius="16"
-                            BorderThickness="1"
-                            BorderBrush="#2DFFFFFF"
-                            Background="#1F1B2436"
-                            Padding="14">
-                        <StackPanel Spacing="4">
-                            <TextBlock FontSize="12" Opacity="0.8" Text="天气（预留 API）" />
-                            <TextBlock FontSize="24" FontWeight="SemiBold" Text="20℃  多云" />
-                            <TextBlock FontSize="12" Opacity="0.75" Text="Weather API Endpoint: /api/weather/today" />
-                        </StackPanel>
-                    </Border>
-                </Grid>
-
-                <Grid Grid.Column="1" RowSpacing="12">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <Border Grid.Row="0"
-                            CornerRadius="16"
-                            BorderThickness="1"
-                            BorderBrush="#2DFFFFFF"
-                            Background="#1B213346"
-                            Padding="14">
-                        <StackPanel Spacing="8">
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="计划表" />
-                            <TextBlock Opacity="0.85" Text="• 本周发布 v0.1" />
-                            <TextBlock Opacity="0.85" Text="• 完成托盘 + 小组件收尾" />
-                            <TextBlock Opacity="0.85" Text="• 视觉稿第一轮评审" />
-                        </StackPanel>
-                    </Border>
-
+                    <!-- 当日天气 -->
                     <Border Grid.Row="1"
                             CornerRadius="16"
                             BorderThickness="1"
                             BorderBrush="#2DFFFFFF"
-                            Background="#202A2040"
-                            Padding="14">
+                            Background="#23283945"
+                            Padding="12">
                         <StackPanel Spacing="8">
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="提醒" />
-                            <TextBlock Opacity="0.85" Text="• 16:00 提交迭代说明" />
-                            <TextBlock Opacity="0.85" Text="• 18:30 运动 30 分钟" />
-                            <TextBlock Opacity="0.85" Text="• 22:30 明日计划整理" />
+                            <TextBlock Text="当日天气" FontSize="14" FontWeight="SemiBold" Opacity="0.9" />
+                            <TextBlock x:Name="WeatherTempText" 
+                                       FontSize="32" 
+                                       FontWeight="Bold" 
+                                       Text="-- °C" />
+                            <TextBlock x:Name="WeatherStatusText" 
+                                       FontSize="12" 
+                                       Opacity="0.7" 
+                                       Text="天气数据加载中..." />
+                            <TextBlock FontSize="11" 
+                                       Opacity="0.6" 
+                                       Text="(预留 API 接口)" 
+                                       Margin="0,4,0,0" />
                         </StackPanel>
                     </Border>
                 </Grid>
+            </Border>
 
-                <Grid Grid.Column="2">
-                    <Border CornerRadius="16"
+            <!-- 中栏：日程列表 -->
+            <Border Grid.Column="1"
+                    CornerRadius="22"
+                    BorderThickness="1"
+                    BorderBrush="#33FFFFFF"
+                    Background="#2A101827"
+                    Padding="16">
+                <Grid RowSpacing="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="日程列表" />
+                        <TextBlock Opacity="0.82" Text="全部日程，自动换行展示" />
+                        <TextBlock x:Name="ScheduleSummaryText" FontSize="12" Opacity="0.75" Text="共 0 条" />
+                    </StackPanel>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="AllScheduleList">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Vertical" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="12"
+                                            BorderThickness="1"
+                                            BorderBrush="#2DFFFFFF"
+                                            Background="#2A425062"
+                                            Padding="12"
+                                            Margin="0,0,0,8">
+                                        <StackPanel Spacing="4">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock FontSize="16" FontWeight="SemiBold" Text="{Binding Title}" TextWrapping="Wrap" />
+                                                <TextBlock FontSize="12" 
+                                                           Foreground="#4FC3F7"
+                                                           Text="{Binding DisplayRepeatBadge}"
+                                                           VerticalAlignment="Center" />
+                                            </StackPanel>
+                                            <TextBlock FontSize="12" Opacity="0.78" Text="{Binding DisplayWhen}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- 右栏：待办和提醒 -->
+            <Border Grid.Column="2"
+                    CornerRadius="22"
+                    BorderThickness="1"
+                    BorderBrush="#33FFFFFF"
+                    Background="#2A101827"
+                    Padding="16">
+                <Grid RowSpacing="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- 待办列表 -->
+                    <Border Grid.Row="0"
+                            CornerRadius="16"
                             BorderThickness="1"
                             BorderBrush="#2DFFFFFF"
                             Background="#23283945"
-                            Padding="14">
-                        <Grid RowSpacing="10">
+                            Padding="12">
+                        <Grid RowSpacing="8">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
 
-                            <TextBlock FontSize="20" FontWeight="SemiBold" Text="日程表" />
-
-                            <StackPanel Grid.Row="1" Spacing="10">
-                                <Border CornerRadius="12" Background="#2A3A4C66" Padding="12">
-                                    <StackPanel VerticalAlignment="Bottom" Spacing="4">
-                                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="项目站会" />
-                                        <TextBlock FontSize="12" Opacity="0.78" Text="2026-03-26  09:30 - 10:00" />
-                                    </StackPanel>
-                                </Border>
-
-                                <Border CornerRadius="12" Background="#2A425062" Padding="12">
-                                    <StackPanel VerticalAlignment="Bottom" Spacing="4">
-                                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="交互评审" />
-                                        <TextBlock FontSize="12" Opacity="0.78" Text="2026-03-26  14:00 - 15:00" />
-                                    </StackPanel>
-                                </Border>
-
-                                <Border CornerRadius="12" Background="#2A4D4A60" Padding="12">
-                                    <StackPanel VerticalAlignment="Bottom" Spacing="4">
-                                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="每日复盘" />
-                                        <TextBlock FontSize="12" Opacity="0.78" Text="2026-03-26  17:30 - 18:00" />
-                                    </StackPanel>
-                                </Border>
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="待办列表" FontSize="14" FontWeight="SemiBold" />
+                                <TextBlock x:Name="TodoCountText" FontSize="11" Opacity="0.7" Text="共 0 项" />
                             </StackPanel>
+
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                <ItemsControl x:Name="TodoListHome">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Title}" 
+                                                       FontSize="12" 
+                                                       Opacity="0.85"
+                                                       TextWrapping="Wrap"
+                                                       Margin="0,0,0,6" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+
+                    <!-- 提醒列表 -->
+                    <Border Grid.Row="1"
+                            CornerRadius="16"
+                            BorderThickness="1"
+                            BorderBrush="#2DFFFFFF"
+                            Background="#23283945"
+                            Padding="12">
+                        <Grid RowSpacing="8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="提醒列表" FontSize="14" FontWeight="SemiBold" />
+                                <TextBlock x:Name="ReminderCountText" FontSize="11" Opacity="0.7" Text="共 0 项" />
+                            </StackPanel>
+
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                <ItemsControl x:Name="ReminderListHome">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Spacing="2" Margin="0,0,0,8">
+                                                <TextBlock Text="{Binding Title}" 
+                                                           FontSize="12" 
+                                                           FontWeight="SemiBold"
+                                                           TextWrapping="Wrap" />
+                                                <TextBlock Text="{Binding DisplayEventDate}" 
+                                                           FontSize="11" 
+                                                           Opacity="0.7" />
+                                                <TextBlock Text="{Binding DisplayReminderDate}" 
+                                                           FontSize="11" 
+                                                           Opacity="0.7" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
                         </Grid>
                     </Border>
                 </Grid>
-            </Grid>
-        </Border>
+            </Border>
+        </Grid>
     </Grid>
 </Page>

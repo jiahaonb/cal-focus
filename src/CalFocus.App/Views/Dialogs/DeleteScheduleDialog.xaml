@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentDialog
+    x:Class="CalFocus.App.Views.Dialogs.DeleteScheduleDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    mc:Ignorable="d"
+    Title="删除日程"
+    PrimaryButtonText="取消"
+    DefaultButton="Primary">
+    <StackPanel Spacing="16" MinWidth="400">
+        <TextBlock Text="这是一个重复日程，请选择删除方式：" 
+                   FontSize="14" 
+                   Opacity="0.9" />
+        
+        <StackPanel Spacing="8">
+            <Button Content="仅删除此事件" 
+                    Click="OnThisEventOnly_Click"
+                    HorizontalAlignment="Stretch"
+                    Padding="12,8" />
+            <TextBlock Text="仅删除选中的这一个实例，其他实例保持不变。" 
+                       FontSize="12" 
+                       Opacity="0.7"
+                       Margin="0,-4,0,0" />
+        </StackPanel>
+
+        <StackPanel Spacing="8">
+            <Button Content="删除此事件及以后的所有事件" 
+                    Click="OnThisAndFollowing_Click"
+                    HorizontalAlignment="Stretch"
+                    Padding="12,8" />
+            <TextBlock Text="删除选中实例及之后的所有重复实例，之前的实例保持不变。" 
+                       FontSize="12" 
+                       Opacity="0.7"
+                       Margin="0,-4,0,0" />
+        </StackPanel>
+
+        <StackPanel Spacing="8">
+            <Button Content="删除整个系列" 
+                    Click="OnEntireSeries_Click"
+                    HorizontalAlignment="Stretch"
+                    Padding="12,8"
+                    Background="#C42B1F" />
+            <TextBlock Text="删除所有重复实例，包括过去和未来的所有事件。" 
+                       FontSize="12" 
+                       Opacity="0.7"
+                       Margin="0,-4,0,0" />
+        </StackPanel>
+    </StackPanel>
+</ContentDialog>

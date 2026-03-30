@@ -13,4 +13,6 @@ public sealed class AppDataPathService : IAppDataPathService
     public string ThemeProfilePath => Path.Combine(AppDataRoot, "theme.profile.json");
 
     public string WidgetLayoutPath => Path.Combine(AppDataRoot, "widgets.layout.json");
+
+    public string TraySettingsPath => Path.Combine(AppDataRoot, "tray.settings.json");
 }

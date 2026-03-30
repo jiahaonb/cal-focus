@@ -11,7 +11,7 @@ namespace CalFocus.App.Views
         {
             InitializeComponent();
 
-            var selectedTag = _navigationStateService.LoadSelectedTag();
+            var selectedTag = NormalizeTag(_navigationStateService.LoadSelectedTag());
             NavigateByTag(selectedTag);
             SelectNavItemByTag(selectedTag);
         }
@@ -31,8 +31,9 @@ namespace CalFocus.App.Views
         {
             var targetPage = tag switch
             {
-                "schedule" => typeof(SchedulePage),
-                "reminder" => typeof(ReminderPage),
+                "home" => typeof(SchedulePage),
+                "calendar" => typeof(CalendarSchedulePage),
+                "todoreminder" => typeof(TodoReminderPage),
                 "widgets" => typeof(WidgetCenterPage),
                 "theme" => typeof(ThemePage),
                 _ => typeof(SchedulePage)
@@ -42,6 +43,20 @@ namespace CalFocus.App.Views
             {
                 _ = ContentFrame.Navigate(targetPage);
             }
+        }
+
+        private static string NormalizeTag(string? tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag))
+            {
+                return "home";
+            }
+
+            return tag switch
+            {
+                "home" or "calendar" or "todoreminder" or "widgets" or "theme" => tag,
+                _ => "home"
+            };
         }
 
         private void SelectNavItemByTag(string tag)
@@ -55,7 +70,7 @@ namespace CalFocus.App.Views
                 }
             }
 
-            RootNav.SelectedItem = RootNav.MenuItems[0];
+            RootNav.SelectedItem = RootNav.MenuItems[1];
         }
     }
 }

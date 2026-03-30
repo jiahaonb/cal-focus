@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Page
+    x:Class="CalFocus.App.Views.Pages.TodoReminderPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    mc:Ignorable="d">
+    <Grid Padding="16,10,16,16">
+        <Grid ColumnSpacing="14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 待办列表 -->
+            <Border Grid.Column="0"
+                    CornerRadius="22"
+                    BorderThickness="1"
+                    BorderBrush="#33FFFFFF"
+                    Background="#2A101827"
+                    Padding="16">
+                <Grid RowSpacing="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock FontSize="28" FontWeight="SemiBold" Text="待办列表" />
+                        <TextBlock Opacity="0.82" Text="管理你的待办事项" />
+                        <TextBlock x:Name="TodoCountText" FontSize="12" Opacity="0.75" Text="共 0 项" />
+                    </StackPanel>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="TodoList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="12"
+                                            BorderThickness="1"
+                                            BorderBrush="#2DFFFFFF"
+                                            Background="#2A425062"
+                                            Padding="12"
+                                            Margin="0,0,0,8">
+                                        <StackPanel Spacing="8">
+                                            <TextBlock FontSize="16" FontWeight="SemiBold" Text="{Binding Title}" TextWrapping="Wrap" />
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <Button Content="完成" Tag="{Binding Id}" Click="OnCompleteTodoClick" />
+                                                <Button Content="删除" Tag="{Binding Id}" Click="OnDeleteTodoClick" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- 提醒列表 -->
+            <Border Grid.Column="1"
+                    CornerRadius="22"
+                    BorderThickness="1"
+                    BorderBrush="#33FFFFFF"
+                    Background="#2A101827"
+                    Padding="16">
+                <Grid RowSpacing="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock FontSize="28" FontWeight="SemiBold" Text="提醒列表" />
+                        <TextBlock Opacity="0.82" Text="管理你的提醒事项" />
+                        <TextBlock x:Name="ReminderCountText" FontSize="12" Opacity="0.75" Text="共 0 项" />
+                    </StackPanel>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="ReminderList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="12"
+                                            BorderThickness="1"
+                                            BorderBrush="#2DFFFFFF"
+                                            Background="#2A425062"
+                                            Padding="12"
+                                            Margin="0,0,0,8">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock FontSize="16" FontWeight="SemiBold" Text="{Binding Title}" TextWrapping="Wrap" />
+                                            <TextBlock FontSize="12" Opacity="0.78" Text="{Binding DisplayTriggerDate}" />
+                                            <TextBlock FontSize="12" Opacity="0.72" Text="{Binding DisplayRepeat}" />
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <Button Content="编辑" Tag="{Binding Id}" Click="OnEditReminderClick" />
+                                                <Button Content="删除" Tag="{Binding Id}" Click="OnDeleteReminderClick" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Page>

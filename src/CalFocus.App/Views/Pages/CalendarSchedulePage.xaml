@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Page
+    x:Class="CalFocus.App.Views.Pages.CalendarSchedulePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    mc:Ignorable="d">
+    
+    <Grid>
+        <!-- 高级深色渐变背景 / Premium Dark Gradient Background -->
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#0A0B10" Offset="0.0" />
+                <GradientStop Color="#1A1C29" Offset="0.4" />
+                <GradientStop Color="#11121C" Offset="0.8" />
+                <GradientStop Color="#0A0A0F" Offset="1.0" />
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <!-- 左上角的模糊环境光晕效 / Ambient glows for a layered effect -->
+        <Ellipse Width="600" Height="600" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-200,-200,0,0">
+            <Ellipse.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="#1A4F46E5" Offset="0.0"/>
+                    <GradientStop Color="#004F46E5" Offset="1.0"/>
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+        <Ellipse Width="500" Height="500" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-150,-150">
+            <Ellipse.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="#157C3AED" Offset="0.0"/>
+                    <GradientStop Color="#007C3AED" Offset="1.0"/>
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <Grid Padding="40,36,40,48" MaxWidth="1400">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- 顶部标题区域 / Header Area -->
+                <Grid Grid.Row="0" Margin="0,0,0,32">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="36" FontWeight="SemiBold" Text="日历日程" Foreground="#FFFFFF" CharacterSpacing="20" />
+                        <TextBlock FontSize="14" FontWeight="Normal" Opacity="0.5" Foreground="#E0E0E0" Text="双击日期数字查看详情 · 双击日程区域新建任务" FontFamily="Segoe UI Variable Display" />
+                    </StackPanel>
+                    
+                    <!-- 渐变质感的主按钮 / Premium Gradient Button -->
+                    <Button Grid.Column="1" Click="OnAddScheduleClick" Padding="20,12" CornerRadius="12" VerticalAlignment="Center" BorderThickness="0" Background="Transparent">
+                        <Button.Content>
+                            <Grid>
+                                <Rectangle RadiusX="12" RadiusY="12">
+                                    <Rectangle.Fill>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#4F46E5" Offset="0.0"/>
+                                            <GradientStop Color="#7C3AED" Offset="1.0"/>
+                                        </LinearGradientBrush>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="16,0" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <TextBlock Text="+" FontSize="18" FontWeight="Light" Foreground="#FFFFFF" Margin="0,-2,0,0"/>
+                                    <TextBlock Text="新增日程" FontSize="14" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+                        </Button.Content>
+                    </Button>
+                </Grid>
+
+                <!-- 控制栏区域 / Controls Area (Month Picker, Today Button) -->
+                <Grid Grid.Row="1" Margin="0,0,0,24">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    
+                    <!-- 月份切换胶囊 / Multi-month capsule -->
+                    <Border Grid.Column="0" CornerRadius="16" Background="#1FFFFFFF" BorderThickness="1" BorderBrush="#1AFFFFFF" Padding="4">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Click="OnPrevMonthClick" Background="Transparent" BorderThickness="0" Padding="12,8" CornerRadius="12" Foreground="#FFFFFF" Opacity="0.8">
+                                <TextBlock Text="&#xE72B;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
+                            </Button>
+                            <TextBlock x:Name="MonthYearText" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" Text="2026年3月" Foreground="#FFFFFF" Margin="16,0" />
+                            <Button Click="OnNextMonthClick" Background="Transparent" BorderThickness="0" Padding="12,8" CornerRadius="12" Foreground="#FFFFFF" Opacity="0.8">
+                                <TextBlock Text="&#xE72A;" FontFamily="Segoe MDL2 Assets" FontSize="12"/>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Button Grid.Column="2" Click="OnTodayClick" Padding="16,10" CornerRadius="10" Background="#15FFFFFF" BorderThickness="1" BorderBrush="#20FFFFFF" Typography.Capitals="SmallCaps">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="&#xE163;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="#4F46E5" VerticalAlignment="Center"/>
+                            <TextBlock Text="今天" FontSize="14" FontWeight="SemiBold" Foreground="#FFFFFF" Opacity="0.9" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <!-- 日历主卡片 / Main Calendar Card -->
+                <Border Grid.Row="2" CornerRadius="20" Background="#0CFFFFFF" BorderThickness="1" BorderBrush="#15FFFFFF" Padding="20">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        
+                        <!-- 星期表头 / Week Headers -->
+                        <Grid Grid.Row="0" Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <!-- Styled Week Headers -->
+                            <TextBlock Grid.Column="0" Text="日" FontSize="13" FontWeight="SemiBold" Opacity="0.4" TextAlignment="Center" Foreground="#FFFFFF" />
+                            <TextBlock Grid.Column="1" Text="一" FontSize="13" FontWeight="SemiBold" Opacity="0.4" TextAlignment="Center" Foreground="#FFFFFF" />
+                            <TextBlock Grid.Column="2" Text="二" FontSize="13" FontWeight="SemiBold" Opacity="0.4" TextAlignment="Center" Foreground="#FFFFFF" />
+                            <TextBlock Grid.Column="3" Text="三" FontSize="13" FontWeight="SemiBold" Opacity="0.4" TextAlignment="Center" Foreground="#FFFFFF" />
+                            <TextBlock Grid.Column="4" Text="四" FontSize="13" FontWeight="SemiBold" Opacity="0.4" TextAlignment="Center" Foreground="#FFFFFF" />
+                            <TextBlock Grid.Column="5" Text="五" FontSize="13" FontWeight="SemiBold" Opacity="0.4" TextAlignment="Center" Foreground="#FFFFFF" />
+                            <TextBlock Grid.Column="6" Text="六" FontSize="13" FontWeight="SemiBold" Opacity="0.4" TextAlignment="Center" Foreground="#FFFFFF" />
+                        </Grid>
+
+                        <ItemsControl Grid.Row="1" x:Name="CalendarGrid" HorizontalAlignment="Stretch">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsWrapGrid Orientation="Horizontal" MaximumRowsOrColumns="7" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemContainerStyle>
+                                <Style TargetType="ContentPresenter">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                </Style>
+                            </ItemsControl.ItemContainerStyle>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <!-- 高级质感的天数卡片 / Premium Day Cell -->
+                                    <Border CornerRadius="12" BorderThickness="1" Margin="6" MinHeight="130" Background="#05FFFFFF">
+                                        <Border.BorderBrush>
+                                            <SolidColorBrush Color="#FFFFFF" Opacity="0.04" />
+                                        </Border.BorderBrush>
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="*" />
+                                            </Grid.RowDefinitions>
+                                            
+                                            <!-- 日期数字按钮 / Day Number -->
+                                            <Button Grid.Row="0" Click="OnDayNumberClick" Tag="{Binding Date}" 
+                                                    Background="Transparent" Padding="12,12,0,4" HorizontalAlignment="Left" BorderThickness="0">
+                                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="{Binding DayNumber}" Foreground="{Binding DayForeground}" />
+                                            </Button>
+
+                                            <!-- 日程展示区 / Schedules Area -->
+                                            <Border Grid.Row="1" DoubleTapped="OnSchedulesAreaDoubleTapped"
+                                                    Tag="{Binding Date}" Background="Transparent" Padding="8,4,8,8">
+                                                <ItemsControl ItemsSource="{Binding Schedules}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <!-- 单个日程条目 / Single Schedule Pill -->
+                                                            <Border CornerRadius="6" Margin="0,3,0,0" Padding="8,6" Background="{Binding ColorBrush}">
+                                                                <StackPanel Spacing="2">
+                                                                    <TextBlock FontSize="11" FontWeight="Bold" Text="{Binding DisplayTime}" Foreground="#FFFFFF" Opacity="0.95" />
+                                                                    <TextBlock FontSize="12" Text="{Binding Title}" TextTrimming="CharacterEllipsis" Foreground="#FFFFFF" Opacity="0.85" FontWeight="Medium" />
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                </Border>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- 编辑弹窗 / Edit Popup -->
+        <Popup x:Name="EditPopup" IsOpen="False" IsLightDismissEnabled="True" HorizontalOffset="0" VerticalOffset="0">
+            <Grid Width="10000" Height="10000" Background="#40000000"> <!-- 半透明遮罩 / Semi-transparent backdrop overlay effect -->
+                <Border CornerRadius="20" BorderThickness="1" Padding="32" Width="420" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="-10000,-10000,0,0">
+                    <Border.BorderBrush>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#40FFFFFF" Offset="0" />
+                            <GradientStop Color="#10FFFFFF" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.BorderBrush>
+                    <Border.Background>
+                        <SolidColorBrush Color="#1C1C28" />
+                    </Border.Background>
+                    <Border.Shadow>
+                        <ThemeShadow />
+                    </Border.Shadow>
+
+                    <Grid RowSpacing="24">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!-- 弹窗标题与日期 -->
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12">
+                            <TextBlock x:Name="PopupTitleText" FontSize="20" FontWeight="Bold" Text="新建日程" Foreground="#FFFFFF" />
+                            <Border Background="#1AFFFFFF" CornerRadius="6" Padding="8,4" VerticalAlignment="Center">
+                                <TextBlock x:Name="PopupDateText" FontSize="12" Opacity="0.7" Foreground="#FFFFFF" FontWeight="SemiBold" />
+                            </Border>
+                        </StackPanel>
+                        
+                        <!-- 输入面板 -->
+                        <TextBox x:Name="EditTitleBox" Grid.Row="1" Header="日程标题" PlaceholderText="想要做些什么?" Padding="12,10" CornerRadius="8" Background="#0FFFFFFF" BorderThickness="1" BorderBrush="#20FFFFFF" />
+                        <TimePicker x:Name="EditTimePicker" Grid.Row="2" Header="开始时间" />
+                        
+                        <!-- 颜色选择器 -->
+                        <StackPanel Grid.Row="3" Spacing="12">
+                            <TextBlock Text="颜色标记" FontSize="13" Opacity="0.6" Foreground="#FFFFFF" FontWeight="Medium" />
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <Button Click="OnColorClick" Tag="#FF6B6B" CornerRadius="16" Background="#FF6B6B" Width="32" Height="32" BorderThickness="0" />
+                                <Button Click="OnColorClick" Tag="#FF9500" CornerRadius="16" Background="#FF9500" Width="32" Height="32" BorderThickness="0" />
+                                <Button Click="OnColorClick" Tag="#34C759" CornerRadius="16" Background="#34C759" Width="32" Height="32" BorderThickness="0" />
+                                <Button Click="OnColorClick" Tag="#4F46E5" CornerRadius="16" Background="#4F46E5" Width="32" Height="32" BorderThickness="0" />
+                                <Button Click="OnColorClick" Tag="#AF52DE" CornerRadius="16" Background="#AF52DE" Width="32" Height="32" BorderThickness="0" />
+                                <Button Click="OnColorClick" Tag="#FF375F" CornerRadius="16" Background="#FF375F" Width="32" Height="32" BorderThickness="0" />
+                            </StackPanel>
+                        </StackPanel>
+                        
+                        <!-- 操作按钮 -->
+                        <Grid Grid.Row="4" Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="DeleteBtn" Grid.Column="0" Content="删除" Click="OnDeleteScheduleClick" Padding="20,10" CornerRadius="10" Background="#20FF375F" Foreground="#FF375F" FontWeight="SemiBold" BorderThickness="1" BorderBrush="#30FF375F" Visibility="Collapsed" />
+                            
+                            <Button Grid.Column="2" Content="取消" Click="OnCancelEditClick" Padding="24,10" CornerRadius="10" Background="Transparent" Foreground="#FFFFFF" FontWeight="SemiBold" Opacity="0.7" Margin="0,0,12,0" BorderThickness="0" />
+                            <Button Grid.Column="3" Content="保存" Click="OnSaveScheduleClick" Padding="32,10" CornerRadius="10" Foreground="#FFFFFF" FontWeight="SemiBold" BorderThickness="0">
+                                <Button.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#4F46E5" Offset="0" />
+                                        <GradientStop Color="#7C3AED" Offset="1" />
+                                    </LinearGradientBrush>
+                                </Button.Background>
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Popup>
+    </Grid>
+</Page>

@@ -15,10 +15,11 @@
                         AlwaysShowHeader="False"
                         SelectionChanged="OnSelectionChanged">
             <NavigationView.MenuItems>
-                <NavigationViewItem Content="日程主页" Tag="schedule" Icon="CalendarDay" />
-                <NavigationViewItem Content="提醒事项" Tag="reminder" Icon="Important" />
-                <NavigationViewItem Content="小组件中心" Tag="widgets" Icon="AllApps" />
-                <NavigationViewItem Content="主题与外观" Tag="theme" Icon="Highlight" />
+                <NavigationViewItem Content="主页" Tag="home" Icon="Home" />
+                <NavigationViewItem Content="日历日程" Tag="calendar" Icon="Calendar" />
+                <NavigationViewItem Content="待办提醒" Tag="todoreminder" Icon="Important" />
+                <NavigationViewItem Content="小组件" Tag="widgets" Icon="AllApps" />
+                <NavigationViewItem Content="主题外观" Tag="theme" Icon="Highlight" />
             </NavigationView.MenuItems>
 
             <Frame x:Name="ContentFrame" />

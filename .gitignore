@@ -1,0 +1,25 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# Rider / VS Code optional
+.idea/
+.vscode/
+
+# NuGet / packages
+packages/
+*.nupkg
+
+# Windows / generated files
+*.cache
+*.xbf
+*.pdb
+*.ilk
+*.aps

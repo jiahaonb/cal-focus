@@ -12,21 +12,26 @@ public sealed class NativeTrayIconService : IDisposable
     private const int WM_CONTEXTMENU = 0x007B;
 
     private const int NIM_ADD = 0x00000000;
+    private const int NIM_MODIFY = 0x00000001;
     private const int NIM_DELETE = 0x00000002;
 
     private const int NIF_MESSAGE = 0x00000001;
     private const int NIF_ICON = 0x00000002;
     private const int NIF_TIP = 0x00000004;
+    private const int NIF_INFO = 0x00000010;
 
     private const int TPM_LEFTALIGN = 0x0000;
     private const int TPM_BOTTOMALIGN = 0x0020;
     private const int TPM_RIGHTBUTTON = 0x0002;
 
+    private const uint NIIF_INFO = 0x00000001;
+
     private const int IDM_OPEN = 1001;
     private const int IDM_OPEN_SETTINGS = 1002;
     private const int IDM_TOGGLE_WIDGETS = 1003;
     private const int IDM_TOGGLE_STARTUP = 1004;
-    private const int IDM_EXIT = 1005;
+    private const int IDM_TOGGLE_TRAY_NOTIFICATIONS = 1005;
+    private const int IDM_EXIT = 1006;
 
     private readonly Action _onOpenMainWindow;
     private readonly Action _onOpenSettings;
@@ -34,6 +39,8 @@ public sealed class NativeTrayIconService : IDisposable
     private readonly Func<bool> _areWidgetsVisible;
     private readonly Func<bool> _onToggleStartup;
     private readonly Func<bool> _isStartupEnabled;
+    private readonly Func<bool> _onToggleTrayNotifications;
+    private readonly Func<bool> _isTrayNotificationsEnabled;
     private readonly Action _onExit;
 
     private readonly string _windowClassName = $"CalFocusTray_{Guid.NewGuid():N}";
@@ -50,6 +57,8 @@ public sealed class NativeTrayIconService : IDisposable
         Func<bool> areWidgetsVisible,
         Func<bool> onToggleStartup,
         Func<bool> isStartupEnabled,
+        Func<bool> onToggleTrayNotifications,
+        Func<bool> isTrayNotificationsEnabled,
         Action onExit)
     {
         _onOpenMainWindow = onOpenMainWindow;
@@ -58,6 +67,8 @@ public sealed class NativeTrayIconService : IDisposable
         _areWidgetsVisible = areWidgetsVisible;
         _onToggleStartup = onToggleStartup;
         _isStartupEnabled = isStartupEnabled;
+        _onToggleTrayNotifications = onToggleTrayNotifications;
+        _isTrayNotificationsEnabled = isTrayNotificationsEnabled;
         _onExit = onExit;
 
         _wndProc = WindowProcedure;
@@ -160,9 +171,22 @@ public sealed class NativeTrayIconService : IDisposable
                     return IntPtr.Zero;
                 case IDM_TOGGLE_WIDGETS:
                     _onToggleWidgets();
+                    ShowInfoBalloon(
+                        "小组件状态",
+                        _areWidgetsVisible() ? "已显示全部小组件" : "已隐藏全部小组件");
                     return IntPtr.Zero;
                 case IDM_TOGGLE_STARTUP:
-                    _ = _onToggleStartup();
+                    var startupEnabled = _onToggleStartup();
+                    ShowInfoBalloon(
+                        "开机启动",
+                        startupEnabled ? "开机启动已开启" : "开机启动已关闭");
+                    return IntPtr.Zero;
+                case IDM_TOGGLE_TRAY_NOTIFICATIONS:
+                    var notificationsEnabled = _onToggleTrayNotifications();
+                    ShowInfoBalloon(
+                        "托盘提醒",
+                        notificationsEnabled ? "托盘气泡提示已开启" : "托盘气泡提示已关闭",
+                        force: true);
                     return IntPtr.Zero;
                 case IDM_EXIT:
                     _onExit();
@@ -177,12 +201,14 @@ public sealed class NativeTrayIconService : IDisposable
     {
         var startupText = _isStartupEnabled() ? "开机启动：已开启" : "开机启动：已关闭";
         var widgetsText = _areWidgetsVisible() ? "隐藏全部小组件" : "显示全部小组件";
+        var notificationText = _isTrayNotificationsEnabled() ? "托盘提醒：已开启" : "托盘提醒：已关闭";
 
         var menu = CreatePopupMenu();
         _ = AppendMenu(menu, 0, IDM_OPEN, "打开主界面");
         _ = AppendMenu(menu, 0, IDM_OPEN_SETTINGS, "设置");
         _ = AppendMenu(menu, 0, IDM_TOGGLE_WIDGETS, widgetsText);
         _ = AppendMenu(menu, 0, IDM_TOGGLE_STARTUP, startupText);
+        _ = AppendMenu(menu, 0, IDM_TOGGLE_TRAY_NOTIFICATIONS, notificationText);
         _ = AppendMenu(menu, 0x0800, 0, string.Empty);
         _ = AppendMenu(menu, 0, IDM_EXIT, "退出");
 
@@ -199,6 +225,22 @@ public sealed class NativeTrayIconService : IDisposable
             IntPtr.Zero);
 
         _ = DestroyMenu(menu);
+    }
+
+    private void ShowInfoBalloon(string title, string message, bool force = false)
+    {
+        if (!force && !_isTrayNotificationsEnabled())
+        {
+            return;
+        }
+
+        var balloon = _notifyIconData;
+        balloon.uFlags = NIF_INFO;
+        balloon.szInfoTitle = title;
+        balloon.szInfo = message;
+        balloon.dwInfoFlags = NIIF_INFO;
+
+        _ = Shell_NotifyIcon(NIM_MODIFY, ref balloon);
     }
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
