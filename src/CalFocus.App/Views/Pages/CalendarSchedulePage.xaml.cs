@@ -14,12 +14,12 @@ public sealed partial class CalendarSchedulePage : Page
 {
     private static readonly Dictionary<string, string> ColorMap = new()
     {
-        { "#0D5D56", "ÉîÂÌ" },
-        { "#22C55E", "´äÂÌ" },
-        { "#F59E0B", "³È»Æ" },
-        { "#EF4444", "³àºì" },
-        { "#3B82F6", "ÎµÀ¶" },
-        { "#8B5CF6", "µå×Ï" }
+        { "#0D5D56", "æ·±ç»¿" },
+        { "#22C55E", "ç¿ ç»¿" },
+        { "#F59E0B", "æ©™é»„" },
+        { "#EF4444", "èµ¤çº¢" },
+        { "#3B82F6", "è”šè“" },
+        { "#8B5CF6", "é›ç´«" }
     };
 
     private App CurrentApp => (App)Application.Current;
@@ -28,7 +28,7 @@ public sealed partial class CalendarSchedulePage : Page
     private DateOnly? _editingDate;
     private string _selectedColor = "#0D5D56";
     private DateTime _lastTapTime = DateTime.MinValue;
-    private Guid? _lastTappedScheduleId;
+    
     private bool _isInitializing = true;
 
     public CalendarSchedulePage()
@@ -121,7 +121,7 @@ public sealed partial class CalendarSchedulePage : Page
                         {
                             Id = x.Id,
                             Title = x.Title,
-                            DisplayTime = x.StartTime.HasValue ? x.StartTime.Value.ToString(@"hh\:mm") : "È«Ìì",
+                            DisplayTime = x.StartTime.HasValue ? x.StartTime.Value.ToString(@"hh\:mm") : "å…¨å¤©",
                             ColorBrush = GetColorBrush(x.Id)
                         })
                         .ToList();
@@ -218,7 +218,7 @@ public sealed partial class CalendarSchedulePage : Page
 
     private void OpenDayDetails(DateOnly date)
     {
-        DetailDateTitle.Text = date.ToString("yyyyÄêMÔÂdÈÕ");
+        DetailDateTitle.Text = date.ToString("yyyyå¹´Mæœˆdæ—¥");
         
         var allSchedules = CurrentApp.ScheduleBoardService.GetAll();
         var daySchedules = allSchedules
@@ -229,7 +229,7 @@ public sealed partial class CalendarSchedulePage : Page
             {
                 Id = x.Id,
                 Title = x.Title,
-                DisplayTime = x.StartTime.HasValue ? x.StartTime.Value.ToString(@"hh\:mm") : "È«Ìì",
+                DisplayTime = x.StartTime.HasValue ? x.StartTime.Value.ToString(@"hh\:mm") : "å…¨å¤©",
                 ColorBrush = GetColorBrush(x.Id)
             })
             .ToList();
@@ -287,8 +287,8 @@ public sealed partial class CalendarSchedulePage : Page
             EditTimePicker.Time = new TimeSpan(9, 0, 0);
         }
 
-        PopupTitleText.Text = isNew ? "ÐÂ½¨ÈÕ³Ì" : "±à¼­ÈÕ³Ì";
-        PopupDateText.Text = date.ToString("MÔÂdÈÕ");
+        PopupTitleText.Text = isNew ? "æ–°å»ºæ—¥ç¨‹" : "ç¼–è¾‘æ—¥ç¨‹";
+        PopupDateText.Text = date.ToString("Mæœˆdæ—¥");
         DeleteBtn.Visibility = isNew ? Visibility.Collapsed : Visibility.Visible;
         
         EditOverlay.Visibility = Visibility.Visible;
@@ -315,7 +315,7 @@ public sealed partial class CalendarSchedulePage : Page
                 _editingScheduleId.Value,
                 EditTitleBox.Text.Trim(),
                 EditTimePicker.Time,
-                "ÎÞ"
+                "æ— "
             );
         }
         else
@@ -324,7 +324,7 @@ public sealed partial class CalendarSchedulePage : Page
                 EditTitleBox.Text.Trim(),
                 _editingDate.Value,
                 EditTimePicker.Time,
-                "ÎÞ"
+                "æ— "
             );
         }
 

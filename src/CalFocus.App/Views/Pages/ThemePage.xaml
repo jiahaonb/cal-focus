@@ -5,11 +5,41 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    mc:Ignorable="d">
-    <Grid Padding="24">
-        <StackPanel Spacing="8">
-            <TextBlock FontSize="28" FontWeight="SemiBold" Text="主题与外观" />
-            <TextBlock Opacity="0.8" Text="这里将承载毛玻璃、平面/立体与背景透明度设置。" />
+    mc:Ignorable="d"
+    Background="{ThemeResource AppBackgroundBrush}">
+
+    <ScrollViewer Padding="40" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="32" MaxWidth="800" HorizontalAlignment="Left">
+            
+            <StackPanel Spacing="8">
+                <TextBlock FontSize="32" FontWeight="SemiBold" Text="外观与主题" Foreground="{ThemeResource AppTitleBrush}" />
+                <TextBlock FontSize="14" Foreground="{ThemeResource AppMutedBrush}" Text="选择属于您的日程界面风格色彩。" />
+            </StackPanel>
+
+            <Border Padding="32" CornerRadius="16" BorderThickness="1" BorderBrush="{ThemeResource AppBorderBrush}" Background="{ThemeResource AppCardBrush}">
+                <StackPanel Spacing="16">
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="系统色彩" Foreground="{ThemeResource AppTitleBrush}" />
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+                        <!-- 极客绿 -->
+                        <Button Background="#E5F3F1" BorderThickness="1" BorderBrush="{ThemeResource AppBorderBrush}" Padding="24,16" CornerRadius="12" Click="OnGreenThemeClick">
+                            <StackPanel Spacing="8">
+                                <Ellipse Width="32" Height="32" Fill="#0D5D56" />
+                                <TextBlock Text="Titan 绿" Foreground="#0D5D56" FontWeight="Medium" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- 深海蓝 -->
+                        <Button Background="#E8F0FE" BorderThickness="1" BorderBrush="{ThemeResource AppBorderBrush}" Padding="24,16" CornerRadius="12" Click="OnBlueThemeClick">
+                            <StackPanel Spacing="8">
+                                <Ellipse Width="32" Height="32" Fill="#1E3A8A" />
+                                <TextBlock Text="Ocean 蓝" Foreground="#1E3A8A" FontWeight="Medium" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
         </StackPanel>
-    </Grid>
+    </ScrollViewer>
 </Page>

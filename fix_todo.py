@@ -1,4 +1,6 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+# -*- coding: utf-8 -*-
+with open(r'd:\Recently\cal-focus\src\CalFocus.App\Views\Pages\TodoReminderPage.xaml', 'w', encoding='utf-8') as f:
+    f.write('''<?xml version="1.0" encoding="UTF-8" ?>
 <Page
     x:Class="CalFocus.App.Views.Pages.TodoReminderPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -94,4 +96,6 @@
             </StackPanel>
         </Grid>
     </ScrollViewer>
-</Page>
+</Page>''')
+
+print("Fixed TodoReminderPage")

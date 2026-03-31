@@ -19,13 +19,13 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     
-                    <!-- ÈÕÆÚÊý×Ö / Day Number -->
+                    <!-- æ—¥æœŸæ•°å­— / Day Number -->
                     <Button Grid.Row="0" Click="OnDayNumberClick" Tag="{Binding Date}" 
                             Background="Transparent" Padding="12,10,0,4" HorizontalAlignment="Left" BorderThickness="0">
                         <TextBlock FontSize="16" FontWeight="SemiBold" Text="{Binding DayNumber}" Foreground="{Binding DayForeground}" />
                     </Button>
 
-                    <!-- ÈÕ³ÌÕ¹Ê¾Çø / Schedules Area -->
+                    <!-- æ—¥ç¨‹å±•ç¤ºåŒº / Schedules Area -->
                     <Border Grid.Row="1" DoubleTapped="OnSchedulesAreaDoubleTapped"
                             Tag="{Binding Date}" Background="Transparent" Padding="6,2,6,8">
                         <ItemsControl ItemsSource="{Binding Schedules}">
@@ -55,7 +55,7 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <!-- ¶¥²¿±êÌâÇøÓò / Header Area -->
+                <!-- é¡¶éƒ¨æ ‡é¢˜åŒºåŸŸ / Header Area -->
                 <Grid Grid.Row="0" Margin="0,0,0,32">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -63,18 +63,18 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel Spacing="8">
                         <TextBlock FontSize="32" FontWeight="SemiBold" Text="Calendar" Foreground="#0F2923" CharacterSpacing="10" />
-                        <TextBlock FontSize="13" FontWeight="Medium" Foreground="#6E8881" Text="µã»÷ÈÕÆÚÊý×Ö²é¿´µ±ÈÕÏêÇé ¡¤ Ë«»÷¿Õ°×´¦ÐÂ½¨ÈÕ³Ì" />
+                        <TextBlock FontSize="13" FontWeight="Medium" Foreground="#6E8881" Text="ç‚¹å‡»æ—¥æœŸæ•°å­—æŸ¥çœ‹å½“æ—¥è¯¦æƒ… Â· åŒå‡»ç©ºç™½å¤„æ–°å»ºæ—¥ç¨‹" />
                     </StackPanel>
                     
                     <Button Grid.Column="1" Click="OnAddScheduleClick" Padding="20,12" CornerRadius="12" VerticalAlignment="Center" BorderThickness="0" Background="#0D5D56">
                         <StackPanel Orientation="Horizontal" Spacing="8" Margin="8,0" VerticalAlignment="Center">
                             <TextBlock Text="+" FontSize="18" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,-2,0,0"/>
-                            <TextBlock Text="ÐÂÔöÈÕ³Ì" FontSize="14" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                            <TextBlock Text="æ–°å¢žæ—¥ç¨‹" FontSize="14" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                 </Grid>
 
-                <!-- ¿ØÖÆÀ¸ÇøÓò / Controls Area (Month Picker, Today Button) -->
+                <!-- æŽ§åˆ¶æ åŒºåŸŸ / Controls Area (Month Picker, Today Button) -->
                 <Grid Grid.Row="1" Margin="0,0,0,24">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -84,10 +84,10 @@
                     
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
                         <ComboBox x:Name="YearCombo" Width="100" SelectionChanged="OnYearMonthSelectionChanged" Background="#FFFFFF" BorderBrush="#E1EBE7" CornerRadius="8" />
-                        <TextBlock Text="Äê" VerticalAlignment="Center" Foreground="#1C3A33" FontWeight="SemiBold" Margin="0,0,8,0" />
+                        <TextBlock Text="å¹´" VerticalAlignment="Center" Foreground="#1C3A33" FontWeight="SemiBold" Margin="0,0,8,0" />
                         
                         <ComboBox x:Name="MonthCombo" Width="80" SelectionChanged="OnYearMonthSelectionChanged" Background="#FFFFFF" BorderBrush="#E1EBE7" CornerRadius="8" />
-                        <TextBlock Text="ÔÂ" VerticalAlignment="Center" Foreground="#1C3A33" FontWeight="SemiBold" />
+                        <TextBlock Text="æœˆ" VerticalAlignment="Center" Foreground="#1C3A33" FontWeight="SemiBold" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12">
@@ -100,13 +100,13 @@
                         <Button Click="OnTodayClick" Padding="16,10" CornerRadius="8" Background="#FFFFFF" BorderThickness="1" BorderBrush="#E1EBE7" Margin="8,0,0,0">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <TextBlock Text="&#xE163;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="#0D5D56" VerticalAlignment="Center"/>
-                                <TextBlock Text="½ñÌì" FontSize="14" FontWeight="SemiBold" Foreground="#1C3A33" VerticalAlignment="Center"/>
+                                <TextBlock Text="ä»Šå¤©" FontSize="14" FontWeight="SemiBold" Foreground="#1C3A33" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>
                 </Grid>
 
-                <!-- ÈÕÀúÖ÷¿¨Æ¬ / Main Calendar Card -->
+                <!-- æ—¥åŽ†ä¸»å¡ç‰‡ / Main Calendar Card -->
                 <Border Grid.Row="2" CornerRadius="20" Background="#FFFFFF" BorderThickness="1" BorderBrush="#E1EBE7" Padding="20">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -114,7 +114,7 @@
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         
-                        <!-- ÐÇÆÚ±íÍ· / Week Headers -->
+                        <!-- æ˜ŸæœŸè¡¨å¤´ / Week Headers -->
                         <Grid Grid.Row="0" Margin="0,0,0,16">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -125,13 +125,13 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="ÖÜÈÕ" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
-                            <TextBlock Grid.Column="1" Text="ÖÜÒ»" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
-                            <TextBlock Grid.Column="2" Text="ÖÜ¶þ" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
-                            <TextBlock Grid.Column="3" Text="ÖÜÈý" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
-                            <TextBlock Grid.Column="4" Text="ÖÜËÄ" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
-                            <TextBlock Grid.Column="5" Text="ÖÜÎå" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
-                            <TextBlock Grid.Column="6" Text="ÖÜÁù" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
+                            <TextBlock Grid.Column="0" Text="å‘¨æ—¥" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="å‘¨ä¸€" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
+                            <TextBlock Grid.Column="2" Text="å‘¨äºŒ" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
+                            <TextBlock Grid.Column="3" Text="å‘¨ä¸‰" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
+                            <TextBlock Grid.Column="4" Text="å‘¨å››" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
+                            <TextBlock Grid.Column="5" Text="å‘¨äº”" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
+                            <TextBlock Grid.Column="6" Text="å‘¨å…­" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
                         </Grid>
 
                         <Grid x:Name="DaysGrid" Grid.Row="1">
@@ -158,7 +158,7 @@
             </Grid>
         </ScrollViewer>
 
-        <!-- ÐÂ½¨/±à¼­ÈÕ³Ìµ¯´° -->
+        <!-- æ–°å»º/ç¼–è¾‘æ—¥ç¨‹å¼¹çª— -->
         <Grid x:Name="EditOverlay" Visibility="Collapsed" Background="#660A1F18">
             <Border CornerRadius="20" BorderThickness="1" BorderBrush="#E1EBE7" Padding="32" Width="440" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#FFFFFF">
                 <Grid RowSpacing="24">
@@ -170,14 +170,14 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12">
-                        <TextBlock x:Name="PopupTitleText" FontSize="20" FontWeight="Bold" Text="ÐÂ½¨ÈÕ³Ì" Foreground="#0F2923" />
+                        <TextBlock x:Name="PopupTitleText" FontSize="20" FontWeight="Bold" Text="æ–°å»ºæ—¥ç¨‹" Foreground="#0F2923" />
                         <Border Background="#F4F8F6" CornerRadius="6" Padding="10,4" VerticalAlignment="Center">
                             <TextBlock x:Name="PopupDateText" FontSize="13" Foreground="#0D5D56" FontWeight="SemiBold" />
                         </Border>
                     </StackPanel>
                     
-                    <TextBox x:Name="EditTitleBox" Grid.Row="1" Header="ÈÕ³Ì±êÌâ" PlaceholderText="ÏëÒª×öÐ©Ê²Ã´?" Padding="12,12" CornerRadius="8" Background="#F9FBFA" BorderThickness="1" BorderBrush="#E1EBE7" Foreground="#1C3A33" />
-                    <TimePicker x:Name="EditTimePicker" Grid.Row="2" Header="¿ªÊ¼Ê±¼ä" HorizontalAlignment="Stretch" />
+                    <TextBox x:Name="EditTitleBox" Grid.Row="1" Header="æ—¥ç¨‹æ ‡é¢˜" PlaceholderText="æƒ³è¦åšäº›ä»€ä¹ˆ?" Padding="12,12" CornerRadius="8" Background="#F9FBFA" BorderThickness="1" BorderBrush="#E1EBE7" Foreground="#1C3A33" />
+                    <TimePicker x:Name="EditTimePicker" Grid.Row="2" Header="å¼€å§‹æ—¶é—´" HorizontalAlignment="Stretch" />
                     
                     <Grid Grid.Row="3" Margin="0,16,0,0">
                         <Grid.ColumnDefinitions>
@@ -186,16 +186,16 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Button x:Name="DeleteBtn" Grid.Column="0" Content="É¾³ý" Click="OnDeleteScheduleClick" Padding="20,10" CornerRadius="8" Background="#FFF1F2" Foreground="#EF4444" FontWeight="SemiBold" BorderThickness="0" Visibility="Collapsed" />
+                        <Button x:Name="DeleteBtn" Grid.Column="0" Content="åˆ é™¤" Click="OnDeleteScheduleClick" Padding="20,10" CornerRadius="8" Background="#FFF1F2" Foreground="#EF4444" FontWeight="SemiBold" BorderThickness="0" Visibility="Collapsed" />
                         
-                        <Button Grid.Column="2" Content="È¡Ïû" Click="OnCancelEditClick" Padding="24,10" CornerRadius="8" Background="Transparent" Foreground="#6E8881" FontWeight="SemiBold" Margin="0,0,12,0" BorderThickness="0" />
-                        <Button Grid.Column="3" Content="±£´æ" Click="OnSaveScheduleClick" Padding="32,10" CornerRadius="8" Background="#0D5D56" Foreground="#FFFFFF" FontWeight="SemiBold" BorderThickness="0" />
+                        <Button Grid.Column="2" Content="å–æ¶ˆ" Click="OnCancelEditClick" Padding="24,10" CornerRadius="8" Background="Transparent" Foreground="#6E8881" FontWeight="SemiBold" Margin="0,0,12,0" BorderThickness="0" />
+                        <Button Grid.Column="3" Content="ä¿å­˜" Click="OnSaveScheduleClick" Padding="32,10" CornerRadius="8" Background="#0D5D56" Foreground="#FFFFFF" FontWeight="SemiBold" BorderThickness="0" />
                     </Grid>
                 </Grid>
             </Border>
         </Grid>
 
-        <!-- ²é¿´µ±ÈÕÏêÇéµ¯´° -->
+        <!-- æŸ¥çœ‹å½“æ—¥è¯¦æƒ…å¼¹çª— -->
         <Grid x:Name="DetailsOverlay" Visibility="Collapsed" Background="#660A1F18">
             <Border CornerRadius="20" BorderThickness="1" BorderBrush="#E1EBE7" Padding="32" Width="400" MaxHeight="600" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#FFFFFF">
                 <Grid>
@@ -207,7 +207,7 @@
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="0,0,0,24">
                         <TextBlock x:Name="DetailDateTitle" FontSize="22" FontWeight="Bold" Foreground="#0F2923" />
-                        <TextBlock Text="½ñÈÕÈÕ³Ì" FontSize="14" Foreground="#8FA39D" VerticalAlignment="Bottom" Margin="0,0,0,3" />
+                        <TextBlock Text="ä»Šæ—¥æ—¥ç¨‹" FontSize="14" Foreground="#8FA39D" VerticalAlignment="Bottom" Margin="0,0,0,3" />
                     </StackPanel>
 
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,24">
@@ -224,7 +224,7 @@
                                                 <TextBlock FontSize="16" FontWeight="SemiBold" Text="{Binding Title}" Foreground="#FFFFFF" />
                                                 <TextBlock FontSize="13" Text="{Binding DisplayTime}" Foreground="#FFFFFF" Opacity="0.85" />
                                             </StackPanel>
-                                            <Button Grid.Column="1" Content="±à¼­" Tag="{Binding Id}" Click="OnScheduleClick" Background="#33FFFFFF" Foreground="#FFFFFF" BorderThickness="0" Padding="12,6" CornerRadius="6" VerticalAlignment="Center" />
+                                            <Button Grid.Column="1" Content="ç¼–è¾‘" Tag="{Binding Id}" Click="OnScheduleClick" Background="#33FFFFFF" Foreground="#FFFFFF" BorderThickness="0" Padding="12,6" CornerRadius="6" VerticalAlignment="Center" />
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
@@ -232,7 +232,7 @@
                         </ItemsControl>
                     </ScrollViewer>
 
-                    <Button Grid.Row="2" Content="¹Ø±Õ" Click="OnCloseDetailsClick" Padding="0,12" HorizontalAlignment="Stretch" CornerRadius="8" Background="#F4F8F6" Foreground="#1C3A33" FontWeight="SemiBold" BorderThickness="0" />
+                    <Button Grid.Row="2" Content="å…³é—­" Click="OnCloseDetailsClick" Padding="0,12" HorizontalAlignment="Stretch" CornerRadius="8" Background="#F4F8F6" Foreground="#1C3A33" FontWeight="SemiBold" BorderThickness="0" />
                 </Grid>
             </Border>
         </Grid>
