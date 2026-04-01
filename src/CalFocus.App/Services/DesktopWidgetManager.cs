@@ -259,6 +259,28 @@ public sealed class DesktopWidgetManager
 
         widget.DisplayId = targetDisplay.DisplayId;
 
+        widget.SizeMode = WidgetSizingService.NormalizeSizeMode(widget.SizeMode);
+
+        var requestedWidth = Math.Max(1, (int)Math.Round(widget.Width));
+        var requestedHeight = Math.Max(1, (int)Math.Round(widget.Height));
+
+        var normalizedSize = WidgetSizingService.IsPresetMode(widget.SizeMode)
+            ? WidgetSizingService.CalculatePresetSize(
+                widget.WidgetType,
+                widget.SizeMode,
+                targetDisplay.WorkAreaWidth,
+                targetDisplay.WorkAreaHeight)
+            : WidgetSizingService.ConstrainSize(
+                widget.WidgetType,
+                requestedWidth,
+                requestedHeight,
+                targetDisplay.WorkAreaWidth,
+                targetDisplay.WorkAreaHeight,
+                preferHeightSafety: true);
+
+        widget.Width = normalizedSize.Width;
+        widget.Height = normalizedSize.Height;
+
         var maxX = targetDisplay.WorkAreaX + targetDisplay.WorkAreaWidth - (int)widget.Width;
         var maxY = targetDisplay.WorkAreaY + targetDisplay.WorkAreaHeight - (int)widget.Height;
 

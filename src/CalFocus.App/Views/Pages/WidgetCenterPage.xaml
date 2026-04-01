@@ -7,14 +7,34 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     mc:Ignorable="d">
     <Grid Style="{StaticResource PageRootGridStyle}">
-        <StackPanel Padding="24" Spacing="14">
-            <StackPanel Spacing="4">
-                <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="小组件中心" />
-                <TextBlock Style="{StaticResource SectionHintTextStyle}" Text="选择一个静态预览卡片即可添加对应桌面组件。" />
-                <TextBlock x:Name="WidgetCountText" FontSize="12" Foreground="{ThemeResource AppMutedBrush}" Text="当前数量：0" />
-            </StackPanel>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-            <GridView x:Name="WidgetPreviewGrid" IsItemClickEnabled="False" SelectionMode="None" HorizontalAlignment="Stretch">
+        <StackPanel Grid.Row="0" Padding="24,24,24,12" Spacing="4">
+            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="小组件中心" />
+            <TextBlock Style="{StaticResource SectionHintTextStyle}" Text="选择一个静态预览卡片即可添加对应桌面组件。" />
+            <TextBlock x:Name="WidgetCountText" FontSize="12" Foreground="{ThemeResource AppMutedBrush}" Text="当前数量：0" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1"
+                      Padding="24,0,24,24"
+                      VerticalScrollBarVisibility="Auto"
+                      VerticalScrollMode="Enabled"
+                      HorizontalScrollBarVisibility="Disabled"
+                      HorizontalScrollMode="Disabled"
+                      ZoomMode="Disabled"
+                      IsVerticalRailEnabled="True"
+                      IsHorizontalRailEnabled="False">
+            <GridView x:Name="WidgetPreviewGrid"
+                      IsItemClickEnabled="False"
+                      SelectionMode="None"
+                      HorizontalAlignment="Stretch"
+                      ScrollViewer.VerticalScrollMode="Disabled"
+                      ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                      ScrollViewer.HorizontalScrollMode="Disabled"
+                      ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                 <GridView.ItemsPanel>
                     <ItemsPanelTemplate>
                         <ItemsWrapGrid Orientation="Horizontal" />
@@ -43,6 +63,6 @@
                     </DataTemplate>
                 </GridView.ItemTemplate>
             </GridView>
-        </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Page>

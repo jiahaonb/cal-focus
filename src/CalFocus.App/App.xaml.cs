@@ -17,11 +17,12 @@ namespace CalFocus.App
     /// </summary>
     public partial class App : Application
     {
-        private const double MainWindowAspectRatio = 2.1;
-        private const int DefaultWindowWidth = 1260;
-        private const int DefaultWindowHeight = 600;
-        private const int MinWindowWidth = 840;
-        private const int MinWindowHeight = 400;
+        private const double MainWindowAspectRatio = 2.0;
+        private const double MainWindowDefaultWorkAreaUsage = 0.72;
+        private const double MainWindowMaxWidthWorkAreaUsage = 0.95;
+        private const double MainWindowMaxHeightWorkAreaUsage = 0.92;
+        private const int MinWindowWidth = 900;
+        private const int MinWindowHeight = 450;
 
         private Window? _window;
         private NativeTrayIconService? _trayIconService;
@@ -212,7 +213,49 @@ namespace CalFocus.App
                 return;
             }
 
-            appWindow.Resize(new SizeInt32(DefaultWindowWidth, DefaultWindowHeight));
+            var workArea = GetWorkArea(appWindow);
+            var defaultSize = CalculateMainWindowDefaultSize(workArea);
+            appWindow.Resize(defaultSize);
+
+            var centeredPosition = GetCenteredPosition(workArea, defaultSize.Width, defaultSize.Height);
+            appWindow.Move(centeredPosition);
+        }
+
+        public bool EnsureMainWindowMinWidth(int requestedWidth)
+        {
+            if (_window is null)
+            {
+                return false;
+            }
+
+            var appWindow = TryGetAppWindow(_window);
+            if (appWindow is null)
+            {
+                return false;
+            }
+
+            var workArea = GetWorkArea(appWindow);
+            var maxWidthByWorkArea = Math.Max(1, workArea.Width);
+            var maxHeightByWorkArea = Math.Max(1, workArea.Height);
+
+            var targetWidth = Math.Clamp(Math.Max(appWindow.Size.Width, requestedWidth), 1, maxWidthByWorkArea);
+            var targetHeight = Math.Max(1, (int)Math.Round(targetWidth / MainWindowAspectRatio));
+
+            // 高度优先避免溢出工作区，再反推宽度以维持 2:1。
+            if (targetHeight > maxHeightByWorkArea)
+            {
+                targetHeight = maxHeightByWorkArea;
+                targetWidth = Math.Max(1, (int)Math.Round(targetHeight * MainWindowAspectRatio));
+            }
+
+            if (targetWidth > maxWidthByWorkArea)
+            {
+                targetWidth = maxWidthByWorkArea;
+                targetHeight = Math.Max(1, (int)Math.Round(targetWidth / MainWindowAspectRatio));
+            }
+
+            appWindow.Resize(new SizeInt32(targetWidth, targetHeight));
+            return true;
         }
 
         private void OnMainWindowClosed(object sender, WindowEventArgs args)
@@ -232,6 +275,82 @@ namespace CalFocus.App
 
             var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
             return AppWindow.GetFromWindowId(windowId);
+        }
+
+        private static RectInt32 GetWorkArea(AppWindow appWindow)
+        {
+            var displayArea = DisplayArea.GetFromWindowId(appWindow.Id, DisplayAreaFallback.Primary);
+            var workArea = displayArea.WorkArea;
+
+            if (workArea.Width <= 0 || workArea.Height <= 0)
+            {
+                return new RectInt32(0, 0, Math.Max(1, appWindow.Size.Width), Math.Max(1, appWindow.Size.Height));
+            }
+
+            return workArea;
+        }
+
+        private static SizeInt32 CalculateMainWindowDefaultSize(RectInt32 workArea)
+        {
+            var hardMaxWidth = Math.Max(1, workArea.Width);
+            var hardMaxHeight = Math.Max(1, workArea.Height);
+
+            var maxWidth = Math.Clamp((int)Math.Round(hardMaxWidth * MainWindowMaxWidthWorkAreaUsage), 1, hardMaxWidth);
+            var maxHeight = Math.Clamp((int)Math.Round(hardMaxHeight * MainWindowMaxHeightWorkAreaUsage), 1, hardMaxHeight);
+
+            var preferredWidth = Math.Clamp((int)Math.Round(hardMaxWidth * MainWindowDefaultWorkAreaUsage), 1, maxWidth);
+            var preferredHeight = Math.Max(1, (int)Math.Round(preferredWidth / MainWindowAspectRatio));
+
+            if (preferredHeight > maxHeight)
+            {
+                preferredHeight = maxHeight;
+                preferredWidth = Math.Max(1, (int)Math.Round(preferredHeight * MainWindowAspectRatio));
+            }
+
+            if (preferredWidth > maxWidth)
+            {
+                preferredWidth = maxWidth;
+                preferredHeight = Math.Max(1, (int)Math.Round(preferredWidth / MainWindowAspectRatio));
+            }
+
+            var minWidth = Math.Min(MinWindowWidth, hardMaxWidth);
+            var minHeight = Math.Min(MinWindowHeight, hardMaxHeight);
+
+            if (preferredWidth < minWidth)
+            {
+                preferredWidth = minWidth;
+                preferredHeight = Math.Max(1, (int)Math.Round(preferredWidth / MainWindowAspectRatio));
+            }
+
+            if (preferredHeight < minHeight)
+            {
+                preferredHeight = minHeight;
+                preferredWidth = Math.Max(1, (int)Math.Round(preferredHeight * MainWindowAspectRatio));
+            }
+
+            if (preferredHeight > hardMaxHeight)
+            {
+                preferredHeight = hardMaxHeight;
+                preferredWidth = Math.Max(1, (int)Math.Round(preferredHeight * MainWindowAspectRatio));
+            }
+
+            if (preferredWidth > hardMaxWidth)
+            {
+                preferredWidth = hardMaxWidth;
+                preferredHeight = Math.Max(1, (int)Math.Round(preferredWidth / MainWindowAspectRatio));
+            }
+
+            preferredWidth = Math.Clamp(preferredWidth, 1, hardMaxWidth);
+            preferredHeight = Math.Clamp(preferredHeight, 1, hardMaxHeight);
+
+            return new SizeInt32(preferredWidth, preferredHeight);
+        }
+
+        private static PointInt32 GetCenteredPosition(RectInt32 workArea, int width, int height)
+        {
+            var x = workArea.X + Math.Max(0, (workArea.Width - width) / 2);
+            var y = workArea.Y + Math.Max(0, (workArea.Height - height) / 2);
+            return new PointInt32(x, y);
         }
 
         private void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
@@ -267,6 +386,7 @@ namespace CalFocus.App
             private const int GwlWndProc = -4;
             private const uint WmGetMinMaxInfo = 0x0024;
             private const uint WmSizing = 0x0214;
+            private const uint MonitorDefaultToNearest = 0x00000002;
 
             private readonly IntPtr _hwnd;
             private readonly int _minWidth;
@@ -329,9 +449,14 @@ namespace CalFocus.App
             {
                 if (message == WmGetMinMaxInfo && lParam != IntPtr.Zero)
                 {
+                    var workArea = ResolveWorkArea();
+                    var workAreaWidth = Math.Max(1, workArea.Right - workArea.Left);
+                    var workAreaHeight = Math.Max(1, workArea.Bottom - workArea.Top);
                     var minMaxInfo = Marshal.PtrToStructure<MinMaxInfo>(lParam);
-                    minMaxInfo.MinTrackSize.X = Math.Max(minMaxInfo.MinTrackSize.X, _minWidth);
-                    minMaxInfo.MinTrackSize.Y = Math.Max(minMaxInfo.MinTrackSize.Y, _minHeight);
+                    minMaxInfo.MinTrackSize.X = Math.Max(minMaxInfo.MinTrackSize.X, Math.Min(_minWidth, workAreaWidth));
+                    minMaxInfo.MinTrackSize.Y = Math.Max(minMaxInfo.MinTrackSize.Y, Math.Min(_minHeight, workAreaHeight));
+                    minMaxInfo.MaxTrackSize.X = Math.Max(minMaxInfo.MinTrackSize.X, workAreaWidth);
+                    minMaxInfo.MaxTrackSize.Y = Math.Max(minMaxInfo.MinTrackSize.Y, workAreaHeight);
                     Marshal.StructureToPtr(minMaxInfo, lParam, false);
                 }
 
@@ -351,6 +476,9 @@ namespace CalFocus.App
             {
                 var width = Math.Max(1, rect.Right - rect.Left);
                 var height = Math.Max(1, rect.Bottom - rect.Top);
+                var workArea = ResolveWorkArea();
+                var maxWidth = Math.Max(1, workArea.Right - workArea.Left);
+                var maxHeight = Math.Max(1, workArea.Bottom - workArea.Top);
 
                 var leftEdge = edge is 1 or 4 or 7;
                 var rightEdge = edge is 2 or 5 or 8;
@@ -400,7 +528,7 @@ namespace CalFocus.App
                     }
                 }
 
-                NormalizeSize(ref targetWidth, ref targetHeight, useWidthAsDriver);
+                NormalizeSize(ref targetWidth, ref targetHeight, useWidthAsDriver, maxWidth, maxHeight);
 
                 if (leftEdge)
                 {
@@ -421,19 +549,78 @@ namespace CalFocus.App
                 }
             }
 
-            private void NormalizeSize(ref int width, ref int height, bool widthAsDriver)
+            private void NormalizeSize(ref int width, ref int height, bool widthAsDriver, int maxWidth, int maxHeight)
             {
                 if (widthAsDriver)
                 {
                     width = Math.Max(width, _minWidth);
                     height = Math.Max(_minHeight, (int)Math.Round(width / _aspectRatio));
+                }
+                else
+                {
+                    height = Math.Max(height, _minHeight);
                     width = Math.Max(_minWidth, (int)Math.Round(height * _aspectRatio));
-                    return;
                 }
 
-                height = Math.Max(height, _minHeight);
-                width = Math.Max(_minWidth, (int)Math.Round(height * _aspectRatio));
-                height = Math.Max(_minHeight, (int)Math.Round(width / _aspectRatio));
+                // 高度优先保证不溢出，再反推宽度保持固定比例。
+                if (height > maxHeight)
+                {
+                    height = maxHeight;
+                    width = Math.Max(1, (int)Math.Round(height * _aspectRatio));
+                }
+
+                if (width > maxWidth)
+                {
+                    width = maxWidth;
+                    height = Math.Max(1, (int)Math.Round(width / _aspectRatio));
+                }
+
+                var minWidth = Math.Min(_minWidth, maxWidth);
+                var minHeight = Math.Min(_minHeight, maxHeight);
+
+                if (width < minWidth)
+                {
+                    var candidateHeight = Math.Max(1, (int)Math.Round(minWidth / _aspectRatio));
+                    if (candidateHeight <= maxHeight)
+                    {
+                        width = minWidth;
+                        height = candidateHeight;
+                    }
+                }
+
+                if (height < minHeight)
+                {
+                    var candidateWidth = Math.Max(1, (int)Math.Round(minHeight * _aspectRatio));
+                    if (candidateWidth <= maxWidth)
+                    {
+                        height = minHeight;
+                        width = candidateWidth;
+                    }
+                }
+
+                width = Math.Clamp(width, 1, maxWidth);
+                height = Math.Clamp(height, 1, maxHeight);
+            }
+
+            private Rect ResolveWorkArea()
+            {
+                var monitor = MonitorFromWindow(_hwnd, MonitorDefaultToNearest);
+                if (monitor == IntPtr.Zero)
+                {
+                    return new Rect { Left = 0, Top = 0, Right = 1920, Bottom = 1080 };
+                }
+
+                var info = new MonitorInfo
+                {
+                    CbSize = Marshal.SizeOf<MonitorInfo>()
+                };
+
+                if (!GetMonitorInfo(monitor, ref info))
+                {
+                    return new Rect { Left = 0, Top = 0, Right = 1920, Bottom = 1080 };
+                }
+
+                return info.WorkArea;
             }
 
             private delegate IntPtr WindowProc(IntPtr hwnd, uint message, IntPtr wParam, IntPtr lParam);
@@ -453,6 +640,15 @@ namespace CalFocus.App
                 public Point MaxPosition;
                 public Point MinTrackSize;
                 public Point MaxTrackSize;
+            }
+
+            [StructLayout(LayoutKind.Sequential)]
+            private struct MonitorInfo
+            {
+                public int CbSize;
+                public Rect MonitorArea;
+                public Rect WorkArea;
+                public uint Flags;
             }
 
             [StructLayout(LayoutKind.Sequential)]
@@ -482,6 +678,12 @@ namespace CalFocus.App
 
             [DllImport("user32.dll", EntryPoint = "CallWindowProcW")]
             private static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+            [DllImport("user32.dll")]
+            private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
+
+            [DllImport("user32.dll", SetLastError = true)]
+            private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MonitorInfo lpmi);
         }
     }
 }

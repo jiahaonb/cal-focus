@@ -21,6 +21,8 @@ public sealed class ScheduleWidgetWindow : Window
     private AppWindow? _appWindow;
     private bool _placementInitialized;
     private bool _chromeConfigured;
+    private bool _isApplyingConstrainedResize;
+    private bool _suppressSizeModeAutoSwitch;
 
     public event Action<Guid>? WindowClosed;
     public event Action<Guid>? WidgetChanged;
@@ -29,6 +31,7 @@ public sealed class ScheduleWidgetWindow : Window
     {
         _widget = widget;
         EnsureWidgetTint();
+        _widget.SizeMode = WidgetSizingService.NormalizeSizeMode(_widget.SizeMode);
 
         var itemsPanel = new StackPanel
         {
@@ -117,7 +120,11 @@ public sealed class ScheduleWidgetWindow : Window
             return;
         }
 
+        ApplySizeModeToCurrentDisplay();
+
+        _suppressSizeModeAutoSwitch = true;
         _appWindow!.Resize(new SizeInt32((int)_widget.Width, (int)_widget.Height));
+        _suppressSizeModeAutoSwitch = false;
         _appWindow.Move(new PointInt32((int)_widget.X, (int)_widget.Y));
     }
 
@@ -173,12 +180,41 @@ public sealed class ScheduleWidgetWindow : Window
 
     private void OnAppWindowChanged(AppWindow sender, AppWindowChangedEventArgs args)
     {
+        if (_isApplyingConstrainedResize)
+        {
+            return;
+        }
+
         var changed = false;
 
         if (args.DidSizeChange)
         {
-            _widget.Width = sender.Size.Width;
-            _widget.Height = sender.Size.Height;
+            var workArea = GetWorkAreaBounds(sender);
+
+            if (!_suppressSizeModeAutoSwitch)
+            {
+                _widget.SizeMode = WidgetInstance.SizeModeFree;
+            }
+
+            var constrained = WidgetSizingService.ConstrainSize(
+                _widget.WidgetType,
+                sender.Size.Width,
+                sender.Size.Height,
+                workArea.Width,
+                workArea.Height,
+                preferHeightSafety: true);
+
+            if (constrained.Width != sender.Size.Width || constrained.Height != sender.Size.Height)
+            {
+                _isApplyingConstrainedResize = true;
+                _suppressSizeModeAutoSwitch = true;
+                sender.Resize(new SizeInt32(constrained.Width, constrained.Height));
+                _suppressSizeModeAutoSwitch = false;
+                _isApplyingConstrainedResize = false;
+            }
+
+            _widget.Width = constrained.Width;
+            _widget.Height = constrained.Height;
             changed = true;
         }
 
@@ -244,9 +280,11 @@ public sealed class ScheduleWidgetWindow : Window
         var flyout = new MenuFlyout();
 
         var sizeSubMenu = new MenuFlyoutSubItem { Text = "调整大小" };
-        sizeSubMenu.Items.Add(CreateSizeMenuItem("小 (320×200)", 320, 200));
-        sizeSubMenu.Items.Add(CreateSizeMenuItem("中 (380×230)", 380, 230));
-        sizeSubMenu.Items.Add(CreateSizeMenuItem("大 (460×280)", 460, 280));
+        sizeSubMenu.Items.Add(CreateSizeModeMenuItem("小", WidgetInstance.SizeModeSmall));
+        sizeSubMenu.Items.Add(CreateSizeModeMenuItem("中", WidgetInstance.SizeModeMedium));
+        sizeSubMenu.Items.Add(CreateSizeModeMenuItem("大", WidgetInstance.SizeModeLarge));
+        sizeSubMenu.Items.Add(new MenuFlyoutSeparator());
+        sizeSubMenu.Items.Add(CreateSizeModeMenuItem("自由调节（固定比例）", WidgetInstance.SizeModeFree));
 
         var colorSubMenu = new MenuFlyoutSubItem { Text = "修改组件颜色" };
         colorSubMenu.Items.Add(CreateColorMenuItem("跟随主题色", null));
@@ -266,10 +304,10 @@ public sealed class ScheduleWidgetWindow : Window
         return flyout;
     }
 
-    private MenuFlyoutItem CreateSizeMenuItem(string text, int width, int height)
+    private MenuFlyoutItem CreateSizeModeMenuItem(string text, string sizeMode)
     {
         var item = new MenuFlyoutItem { Text = text };
-        item.Click += (_, _) => ResizeWidget(width, height);
+        item.Click += (_, _) => ApplySizeMode(sizeMode);
         return item;
     }
 
@@ -280,12 +318,62 @@ public sealed class ScheduleWidgetWindow : Window
         return item;
     }
 
-    private void ResizeWidget(int width, int height)
+    private void ResizeWidget(int width, int height, bool notifyChanged = true)
     {
         _widget.Width = width;
         _widget.Height = height;
+
         ApplyWidgetPlacement();
+
+        if (notifyChanged)
+        {
+            WidgetChanged?.Invoke(_widget.Id);
+        }
+    }
+
+    private void ApplySizeMode(string sizeMode)
+    {
+        _widget.SizeMode = WidgetSizingService.NormalizeSizeMode(sizeMode);
+        ApplySizeModeToCurrentDisplay();
+        ResizeWidget((int)_widget.Width, (int)_widget.Height, notifyChanged: false);
         WidgetChanged?.Invoke(_widget.Id);
+    }
+
+    private void ApplySizeModeToCurrentDisplay()
+    {
+        if (_appWindow is null)
+        {
+            return;
+        }
+
+        var workArea = GetWorkAreaBounds(_appWindow);
+        var requestedWidth = Math.Max(1, (int)Math.Round(_widget.Width));
+        var requestedHeight = Math.Max(1, (int)Math.Round(_widget.Height));
+
+        var size = WidgetSizingService.IsPresetMode(_widget.SizeMode)
+            ? WidgetSizingService.CalculatePresetSize(
+                _widget.WidgetType,
+                _widget.SizeMode,
+                workArea.Width,
+                workArea.Height)
+            : WidgetSizingService.ConstrainSize(
+                _widget.WidgetType,
+                requestedWidth,
+                requestedHeight,
+                workArea.Width,
+                workArea.Height,
+                preferHeightSafety: true);
+
+        _widget.Width = size.Width;
+        _widget.Height = size.Height;
+    }
+
+    private static (int Width, int Height) GetWorkAreaBounds(AppWindow appWindow)
+    {
+        var workArea = DisplayArea.GetFromWindowId(appWindow.Id, DisplayAreaFallback.Primary).WorkArea;
+        var width = workArea.Width > 0 ? workArea.Width : Math.Max(1, appWindow.Size.Width);
+        var height = workArea.Height > 0 ? workArea.Height : Math.Max(1, appWindow.Size.Height);
+        return (width, height);
     }
 
     private void SetTintColor(string colorHex)

@@ -2,10 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Windowing;
 using System.Numerics;
-using Windows.Graphics;
-using WinRT.Interop;
 
 namespace CalFocus.App.Views.Pages;
 
@@ -20,6 +17,8 @@ public sealed partial class CalendarSchedulePage : Page
     private DateOnly? _focusedDate = DateOnly.FromDateTime(DateTime.Now);
     private bool _isInitializing = true;
     private bool _isSideDetailsVisible;
+    private DateOnly? _lastDoubleTapDate;
+    private DateTimeOffset _lastDoubleTapAt = DateTimeOffset.MinValue;
 
     public CalendarSchedulePage()
     {
@@ -245,6 +244,13 @@ public sealed partial class CalendarSchedulePage : Page
             return;
         }
 
+        if (_lastDoubleTapDate.HasValue &&
+            _lastDoubleTapDate.Value == dayItem.Date &&
+            DateTimeOffset.Now - _lastDoubleTapAt <= TimeSpan.FromMilliseconds(360))
+        {
+            return;
+        }
+
         if (dayItem.IsPlaceholder)
         {
             _focusedDate = null;
@@ -269,11 +275,15 @@ public sealed partial class CalendarSchedulePage : Page
             return;
         }
 
+        _lastDoubleTapDate = dayItem.Date;
+        _lastDoubleTapAt = DateTimeOffset.Now;
+
         _selectedDate = dayItem.Date;
         _focusedDate = dayItem.Date;
         RefreshCalendar();
 
-        if (IsFromNamedElement(e.OriginalSource as DependencyObject, "DayNumberBadgeBorder"))
+        var pointerInCard = e.GetPosition(border);
+        if (IsPointerInsideNamedRegion(border, "DayNumberBadgeBorder", pointerInCard))
         {
             await ShowDayDetailsPopupAsync(dayItem.Date);
             e.Handled = true;
@@ -332,23 +342,7 @@ public sealed partial class CalendarSchedulePage : Page
 
     private void EnsureMainWindowExpandedForSideDetails()
     {
-        if (CurrentApp.MainWindow is null)
-        {
-            return;
-        }
-
-        var hwnd = WindowNative.GetWindowHandle(CurrentApp.MainWindow);
-        if (hwnd == IntPtr.Zero)
-        {
-            return;
-        }
-
-        var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
-        var appWindow = AppWindow.GetFromWindowId(windowId);
-
-        var targetWidth = Math.Max(appWindow.Size.Width, SideDetailsExpandedWindowWidth);
-        var targetHeight = Math.Max(appWindow.Size.Height, 920);
-        appWindow.Resize(new SizeInt32(targetWidth, targetHeight));
+        _ = CurrentApp.EnsureMainWindowMinWidth(SideDetailsExpandedWindowWidth);
     }
 
     private void RefreshSelectedDateDetails()
@@ -676,12 +670,20 @@ public sealed partial class CalendarSchedulePage : Page
         var dialog = new ContentDialog
         {
             Title = $"{date:yyyy年M月d日} 详情",
-            Content = new ScrollViewer
+            Content = new Border
             {
-                MaxHeight = 540,
-                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-                Content = root
+                CornerRadius = new CornerRadius(16),
+                BorderBrush = GetAppBrush("AppBorderBrush"),
+                BorderThickness = new Thickness(1),
+                Background = GetAppBrush("AppGlassBrush"),
+                Padding = new Thickness(12),
+                Child = new ScrollViewer
+                {
+                    MaxHeight = 540,
+                    HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                    VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                    Content = root
+                }
             },
             CloseButtonText = "关闭",
             DefaultButton = ContentDialogButton.Close,
@@ -691,7 +693,7 @@ public sealed partial class CalendarSchedulePage : Page
         await dialog.ShowAsync();
     }
 
-    private static Border CreatePopupSection(string title, IEnumerable<string> lines)
+    private Border CreatePopupSection(string title, IEnumerable<string> lines)
     {
         var lineList = lines.ToList();
 
@@ -704,7 +706,8 @@ public sealed partial class CalendarSchedulePage : Page
                 {
                     Text = title,
                     FontSize = 16,
-                    FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
+                    FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                    Foreground = GetAppBrush("AppTitleBrush")
                 }
             }
         };
@@ -715,6 +718,7 @@ public sealed partial class CalendarSchedulePage : Page
             {
                 Text = "当天暂无内容",
                 Opacity = 0.65,
+                Foreground = GetAppBrush("AppMutedBrush"),
                 TextWrapping = TextWrapping.Wrap
             });
         }
@@ -726,18 +730,19 @@ public sealed partial class CalendarSchedulePage : Page
                 {
                     Text = "• " + line,
                     TextWrapping = TextWrapping.Wrap,
-                    Opacity = 0.9
+                    Opacity = 0.92,
+                    Foreground = GetAppBrush("AppTextBrush")
                 });
             }
         }
 
         return new Border
         {
-            CornerRadius = new CornerRadius(14),
-            BorderBrush = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(70, 255, 255, 255)),
+            CornerRadius = new CornerRadius(16),
+            BorderBrush = GetAppBrush("AppBorderBrush"),
             BorderThickness = new Thickness(1),
-            Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(105, 255, 255, 255)),
-            Padding = new Thickness(10),
+            Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(170, 246, 252, 249)),
+            Padding = new Thickness(12),
             Child = stack
         };
     }
@@ -844,6 +849,26 @@ public sealed partial class CalendarSchedulePage : Page
         }
 
         return false;
+    }
+
+    private static bool IsPointerInsideNamedRegion(FrameworkElement root, string targetName, Windows.Foundation.Point pointerInRoot)
+    {
+        if (root.FindName(targetName) is not FrameworkElement target ||
+            target.ActualWidth <= 0 ||
+            target.ActualHeight <= 0)
+        {
+            return false;
+        }
+
+        var transform = target.TransformToVisual(root);
+        var topLeft = transform.TransformPoint(new Windows.Foundation.Point(0, 0));
+        var right = topLeft.X + target.ActualWidth;
+        var bottom = topLeft.Y + target.ActualHeight;
+
+        return pointerInRoot.X >= topLeft.X &&
+               pointerInRoot.X <= right &&
+               pointerInRoot.Y >= topLeft.Y &&
+               pointerInRoot.Y <= bottom;
     }
 }
 

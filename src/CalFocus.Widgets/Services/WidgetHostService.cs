@@ -25,6 +25,7 @@ public sealed class WidgetHostService
             Height = 160,
             X = 120,
             Y = 120,
+            SizeMode = WidgetInstance.SizeModeMedium,
             TintColorHex = string.IsNullOrWhiteSpace(tintColorHex) ? WidgetInstance.DefaultTintColorHex : tintColorHex
         };
 
@@ -41,6 +42,7 @@ public sealed class WidgetHostService
             Height = 220,
             X = 160,
             Y = 160,
+            SizeMode = WidgetInstance.SizeModeMedium,
             TintColorHex = string.IsNullOrWhiteSpace(tintColorHex) ? WidgetInstance.DefaultTintColorHex : tintColorHex
         };
 
@@ -57,6 +59,7 @@ public sealed class WidgetHostService
             Height = 220,
             X = 180,
             Y = 180,
+            SizeMode = WidgetInstance.SizeModeMedium,
             TintColorHex = string.IsNullOrWhiteSpace(tintColorHex) ? WidgetInstance.DefaultTintColorHex : tintColorHex
         };
 
@@ -88,6 +91,7 @@ public sealed class WidgetHostService
             Opacity = source.Opacity,
             StylePreset = source.StylePreset,
             TintColorHex = source.TintColorHex,
+            SizeMode = source.SizeMode,
             Locked = source.Locked
         };
 
