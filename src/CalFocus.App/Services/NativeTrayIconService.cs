@@ -96,6 +96,11 @@ public sealed class NativeTrayIconService : IDisposable
         GC.SuppressFinalize(this);
     }
 
+    public void ShowSystemNotification(string title, string message)
+    {
+        ShowInfoBalloon(title, message, force: true);
+    }
+
     private void RegisterMessageWindow()
     {
         var instance = GetModuleHandle(null);

@@ -6,205 +6,179 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     mc:Ignorable="d">
-    <Grid Padding="16,10,16,16">
+    <Grid Style="{StaticResource PageRootGridStyle}" Padding="16">
         <Grid ColumnSpacing="12">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="280" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="320" />
+                <ColumnDefinition Width="1.05*" />
+                <ColumnDefinition Width="1.45*" />
+                <ColumnDefinition Width="1.2*" />
             </Grid.ColumnDefinitions>
 
-            <!-- 左栏：时间和天气 -->
-            <Border Grid.Column="0"
-                    CornerRadius="22"
-                    BorderThickness="1"
-                    BorderBrush="#33FFFFFF"
-                    Background="#2A101827"
-                    Padding="16">
-                <Grid RowSpacing="16">
+            <Border Grid.Column="0" Style="{StaticResource GlassCardStyle}" Padding="12">
+                <Grid RowSpacing="10">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <!-- 当前时间 -->
-                    <StackPanel Grid.Row="0" Spacing="8">
-                        <TextBlock x:Name="CurrentTimeText" 
-                                   FontSize="48" 
-                                   FontWeight="Bold" 
-                                   Text="14:30"
-                                   Foreground="#E0E0E0" />
-                        <TextBlock x:Name="CurrentDateText" 
-                                   FontSize="14" 
-                                   Opacity="0.8" 
-                                   Text="2026年3月29日 星期日" />
+                    <StackPanel Grid.Row="0" Spacing="1">
+                        <TextBlock Text="当前时间" Style="{StaticResource SectionHintTextStyle}" />
+                        <TextBlock x:Name="CurrentTimeText" FontSize="46" FontWeight="SemiBold" Foreground="{ThemeResource AppBrandBrush}" Text="14:30:45" />
+                        <TextBlock x:Name="CurrentDateText" FontSize="13" Foreground="{ThemeResource AppMutedBrush}" Text="2026年03月29日 星期日" />
                     </StackPanel>
 
-                    <!-- 当日天气 -->
-                    <Border Grid.Row="1"
-                            CornerRadius="16"
-                            BorderThickness="1"
-                            BorderBrush="#2DFFFFFF"
-                            Background="#23283945"
-                            Padding="12">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="当日天气" FontSize="14" FontWeight="SemiBold" Opacity="0.9" />
-                            <TextBlock x:Name="WeatherTempText" 
-                                       FontSize="32" 
-                                       FontWeight="Bold" 
-                                       Text="-- °C" />
-                            <TextBlock x:Name="WeatherStatusText" 
-                                       FontSize="12" 
-                                       Opacity="0.7" 
-                                       Text="天气数据加载中..." />
-                            <TextBlock FontSize="11" 
-                                       Opacity="0.6" 
-                                       Text="(预留 API 接口)" 
-                                       Margin="0,4,0,0" />
+                    <Border Grid.Row="1" Style="{StaticResource SurfaceCardStyle}" Padding="10,8">
+                        <StackPanel Spacing="1">
+                            <TextBlock Text="天气（API 预留）" FontSize="12" Foreground="{ThemeResource AppMutedBrush}" />
+                            <TextBlock x:Name="WeatherTempText" FontSize="26" FontWeight="SemiBold" Foreground="{ThemeResource AppTextBrush}" Text="--°C" />
+                            <TextBlock x:Name="WeatherStatusText" FontSize="12" Foreground="{ThemeResource AppMutedBrush}" Text="等待天气服务接入" />
                         </StackPanel>
                     </Border>
+
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="未来提醒" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource AppTitleBrush}" />
+                            <TextBlock x:Name="ReminderCountText" FontSize="12" Foreground="{ThemeResource AppMutedBrush}" Text="共 0 项" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="+" Click="OnAddReminderClick" Style="{StaticResource SecondaryActionButtonStyle}" />
+                    </Grid>
+
+                    <ListView Grid.Row="3"
+                              x:Name="ReminderListHome"
+                              IsItemClickEnabled="False"
+                              SelectionMode="None"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="Margin" Value="0,0,0,4" />
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{ThemeResource AppTodayHighlightBrush}"
+                                        BorderBrush="{ThemeResource AppBrandBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="6,3">
+                                    <StackPanel Spacing="0">
+                                        <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" Foreground="{ThemeResource AppTextBrush}" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding Subtitle}" FontSize="11" Foreground="{ThemeResource AppMutedBrush}" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
                 </Grid>
             </Border>
 
-            <!-- 中栏：日程列表 -->
-            <Border Grid.Column="1"
-                    CornerRadius="22"
-                    BorderThickness="1"
-                    BorderBrush="#33FFFFFF"
-                    Background="#2A101827"
-                    Padding="16">
-                <Grid RowSpacing="12">
+            <Border Grid.Column="1" Style="{StaticResource GlassCardStyle}" Padding="12">
+                <Grid RowSpacing="10">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <StackPanel Spacing="4">
-                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="日程列表" />
-                        <TextBlock Opacity="0.82" Text="全部日程，自动换行展示" />
-                        <TextBlock x:Name="ScheduleSummaryText" FontSize="12" Opacity="0.75" Text="共 0 条" />
-                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
 
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                        <ItemsControl x:Name="AllScheduleList">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Vertical" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border CornerRadius="12"
-                                            BorderThickness="1"
-                                            BorderBrush="#2DFFFFFF"
-                                            Background="#2A425062"
-                                            Padding="12"
-                                            Margin="0,0,0,8">
-                                        <StackPanel Spacing="4">
-                                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <TextBlock FontSize="16" FontWeight="SemiBold" Text="{Binding Title}" TextWrapping="Wrap" />
-                                                <TextBlock FontSize="12" 
-                                                           Foreground="#4FC3F7"
-                                                           Text="{Binding DisplayRepeatBadge}"
-                                                           VerticalAlignment="Center" />
-                                            </StackPanel>
-                                            <TextBlock FontSize="12" Opacity="0.78" Text="{Binding DisplayWhen}" TextWrapping="Wrap" />
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="未来日程" Style="{StaticResource SectionTitleTextStyle}" />
+                            <TextBlock x:Name="ScheduleSummaryText" FontSize="12" Foreground="{ThemeResource AppMutedBrush}" Text="共 0 条" />
+                        </StackPanel>
+
+                        <Button Grid.Column="1" Content="+" Click="OnAddScheduleClick" Style="{StaticResource SecondaryActionButtonStyle}" />
+                    </Grid>
+
+                    <ListView Grid.Row="1"
+                              x:Name="AllScheduleList"
+                              IsItemClickEnabled="False"
+                              SelectionMode="None"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="Margin" Value="0,0,0,4" />
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{ThemeResource AppCardBrush}"
+                                        BorderBrush="{ThemeResource AppBrandBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="6,3">
+                                    <StackPanel Spacing="0">
+                                        <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" Foreground="{ThemeResource AppTextBrush}" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding Subtitle}" FontSize="11" Foreground="{ThemeResource AppMutedBrush}" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
                 </Grid>
             </Border>
 
-            <!-- 右栏：待办和提醒 -->
-            <Border Grid.Column="2"
-                    CornerRadius="22"
-                    BorderThickness="1"
-                    BorderBrush="#33FFFFFF"
-                    Background="#2A101827"
-                    Padding="16">
-                <Grid RowSpacing="12">
+            <Border Grid.Column="2" Style="{StaticResource GlassCardStyle}" Padding="12">
+                <Grid RowSpacing="10">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <!-- 待办列表 -->
-                    <Border Grid.Row="0"
-                            CornerRadius="16"
-                            BorderThickness="1"
-                            BorderBrush="#2DFFFFFF"
-                            Background="#23283945"
-                            Padding="12">
-                        <Grid RowSpacing="8">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="未来计划" Style="{StaticResource SectionTitleTextStyle}" />
+                            <TextBlock x:Name="TodoCountText" Style="{StaticResource SectionHintTextStyle}" Text="共 0 项" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="+" Click="OnAddTodoClick" Style="{StaticResource SecondaryActionButtonStyle}" />
+                    </Grid>
 
-                            <StackPanel Spacing="2">
-                                <TextBlock Text="待办列表" FontSize="14" FontWeight="SemiBold" />
-                                <TextBlock x:Name="TodoCountText" FontSize="11" Opacity="0.7" Text="共 0 项" />
-                            </StackPanel>
-
-                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                                <ItemsControl x:Name="TodoListHome">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Title}" 
-                                                       FontSize="12" 
-                                                       Opacity="0.85"
-                                                       TextWrapping="Wrap"
-                                                       Margin="0,0,0,6" />
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
-                        </Grid>
-                    </Border>
-
-                    <!-- 提醒列表 -->
-                    <Border Grid.Row="1"
-                            CornerRadius="16"
-                            BorderThickness="1"
-                            BorderBrush="#2DFFFFFF"
-                            Background="#23283945"
-                            Padding="12">
-                        <Grid RowSpacing="8">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-
-                            <StackPanel Spacing="2">
-                                <TextBlock Text="提醒列表" FontSize="14" FontWeight="SemiBold" />
-                                <TextBlock x:Name="ReminderCountText" FontSize="11" Opacity="0.7" Text="共 0 项" />
-                            </StackPanel>
-
-                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                                <ItemsControl x:Name="ReminderListHome">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Spacing="2" Margin="0,0,0,8">
-                                                <TextBlock Text="{Binding Title}" 
-                                                           FontSize="12" 
-                                                           FontWeight="SemiBold"
-                                                           TextWrapping="Wrap" />
-                                                <TextBlock Text="{Binding DisplayEventDate}" 
-                                                           FontSize="11" 
-                                                           Opacity="0.7" />
-                                                <TextBlock Text="{Binding DisplayReminderDate}" 
-                                                           FontSize="11" 
-                                                           Opacity="0.7" />
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
-                        </Grid>
-                    </Border>
+                    <ListView Grid.Row="1"
+                              x:Name="TodoListHome"
+                              IsItemClickEnabled="False"
+                              SelectionMode="None"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="Margin" Value="0,0,0,4" />
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{ThemeResource AppCardBrush}"
+                                        BorderBrush="{ThemeResource AppBrandBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="6,3">
+                                    <StackPanel Spacing="0">
+                                        <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" Foreground="{ThemeResource AppTextBrush}" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding Subtitle}" FontSize="11" Foreground="{ThemeResource AppMutedBrush}" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
                 </Grid>
             </Border>
         </Grid>

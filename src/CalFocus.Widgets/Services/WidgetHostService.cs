@@ -16,7 +16,7 @@ public sealed class WidgetHostService
         .Select(id => _widgets[id])
         .ToList();
 
-    public WidgetInstance CreateClockWidget()
+    public WidgetInstance CreateClockWidget(string? tintColorHex = null)
     {
         var widget = new WidgetInstance
         {
@@ -24,14 +24,15 @@ public sealed class WidgetHostService
             Width = 280,
             Height = 160,
             X = 120,
-            Y = 120
+            Y = 120,
+            TintColorHex = string.IsNullOrWhiteSpace(tintColorHex) ? WidgetInstance.DefaultTintColorHex : tintColorHex
         };
 
         AddWidget(widget);
         return widget;
     }
 
-    public WidgetInstance CreateScheduleWidget()
+    public WidgetInstance CreateScheduleWidget(string? tintColorHex = null)
     {
         var widget = new WidgetInstance
         {
@@ -39,7 +40,24 @@ public sealed class WidgetHostService
             Width = 360,
             Height = 220,
             X = 160,
-            Y = 160
+            Y = 160,
+            TintColorHex = string.IsNullOrWhiteSpace(tintColorHex) ? WidgetInstance.DefaultTintColorHex : tintColorHex
+        };
+
+        AddWidget(widget);
+        return widget;
+    }
+
+    public WidgetInstance CreatePomodoroWidget(string? tintColorHex = null)
+    {
+        var widget = new WidgetInstance
+        {
+            WidgetType = "Pomodoro",
+            Width = 300,
+            Height = 220,
+            X = 180,
+            Y = 180,
+            TintColorHex = string.IsNullOrWhiteSpace(tintColorHex) ? WidgetInstance.DefaultTintColorHex : tintColorHex
         };
 
         AddWidget(widget);
@@ -69,6 +87,7 @@ public sealed class WidgetHostService
             Height = source.Height,
             Opacity = source.Opacity,
             StylePreset = source.StylePreset,
+            TintColorHex = source.TintColorHex,
             Locked = source.Locked
         };
 

@@ -6,236 +6,347 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     mc:Ignorable="d"
-    Background="#F4F8F6">
+    Background="{ThemeResource AppBackgroundBrush}">
 
     <Page.Resources>
         <DataTemplate x:Key="DayCellTemplate">
-            <Border Margin="4" CornerRadius="12" BorderThickness="1.5" MinHeight="110" 
-                    Background="{Binding BackgroundBrush}" 
-                    BorderBrush="{Binding BorderBrush}">
+            <Border
+                x:Name="DayCardBorder"
+                Margin="3"
+                Background="{Binding BackgroundBrush}"
+                BorderBrush="{Binding BorderBrush}"
+                BorderThickness="{Binding BorderThickness}"
+                CornerRadius="12"
+                Padding="6,4"
+                Tag="{Binding Date}"
+                Tapped="OnDayCardTapped"
+                DoubleTapped="OnDayCardDoubleTapped"
+                PointerEntered="OnDayCardPointerEntered"
+                PointerExited="OnDayCardPointerExited">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    
-                    <!-- 日期数字 / Day Number -->
-                    <Button Grid.Row="0" Click="OnDayNumberClick" Tag="{Binding Date}" 
-                            Background="Transparent" Padding="12,10,0,4" HorizontalAlignment="Left" BorderThickness="0">
-                        <TextBlock FontSize="16" FontWeight="SemiBold" Text="{Binding DayNumber}" Foreground="{Binding DayForeground}" />
-                    </Button>
 
-                    <!-- 日程展示区 / Schedules Area -->
-                    <Border Grid.Row="1" DoubleTapped="OnSchedulesAreaDoubleTapped"
-                            Tag="{Binding Date}" Background="Transparent" Padding="6,2,6,8">
-                        <ItemsControl ItemsSource="{Binding Schedules}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border CornerRadius="6" Margin="0,3,0,0" Padding="8,6" Background="{Binding ColorBrush}">
-                                        <StackPanel Spacing="2">
-                                            <TextBlock FontSize="11" FontWeight="Bold" Text="{Binding DisplayTime}" Foreground="#FFFFFF" Opacity="0.95" />
-                                            <TextBlock FontSize="12" Text="{Binding Title}" TextTrimming="CharacterEllipsis" Foreground="#FFFFFF" Opacity="0.9" FontWeight="Medium" />
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                        <Border x:Name="DayNumberBadgeBorder"
+                            Grid.Row="0"
+                            Background="{Binding DayBadgeBackground}"
+                            CornerRadius="6"
+                            HorizontalAlignment="Left"
+                            Padding="8,3">
+                        <TextBlock Text="{Binding DayNumber}" Foreground="{Binding DayForeground}" FontSize="14" FontWeight="SemiBold" />
                     </Border>
+
+                    <Border Grid.Row="1"
+                            Background="Transparent" />
+
+                    <TextBlock Grid.Row="2"
+                               Text="{Binding ScheduleSummary}"
+                               Visibility="{Binding ScheduleSummaryVisibility}"
+                               Foreground="{ThemeResource AppMutedBrush}"
+                               FontSize="11"
+                               HorizontalAlignment="Right"
+                               Margin="0,0,2,0" />
                 </Grid>
             </Border>
         </DataTemplate>
+
+        <DataTemplate x:Key="ScheduleDetailTemplate">
+            <Border Style="{StaticResource SurfaceCardStyle}" Padding="8,6">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Spacing="0">
+                        <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" Foreground="{ThemeResource AppTextBrush}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding DisplayTime}" FontSize="11" Foreground="{ThemeResource AppMutedBrush}" />
+                    </StackPanel>
+
+                    <Button Grid.Column="1" Content="编辑" Tag="{Binding Id}" Click="OnScheduleClick" Style="{StaticResource SecondaryActionButtonStyle}" />
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ProductivityDetailTemplate">
+            <Border Style="{StaticResource SurfaceCardStyle}" Padding="8,6">
+                <StackPanel Spacing="0">
+                    <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" Foreground="{ThemeResource AppTextBrush}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding DisplaySummary}" FontSize="11" Foreground="{ThemeResource AppMutedBrush}" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+            </Border>
+        </DataTemplate>
     </Page.Resources>
-    
-    <Grid>
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <Grid Padding="40,36,40,48" MaxWidth="1400">
+
+    <Grid Style="{StaticResource PageRootGridStyle}" Padding="16" RowSpacing="12" ColumnSpacing="12">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition x:Name="DetailColumn" Width="0" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Spacing="3">
+                <TextBlock Text="日历日程" Style="{StaticResource SectionTitleTextStyle}" />
+                <TextBlock Text="单击日期选中，双击数字弹出详情卡片，双击日期空白区快速新建日程" Style="{StaticResource SectionHintTextStyle}" />
+            </StackPanel>
+
+            <Button Grid.Column="1" Content="新增日程" Click="OnAddScheduleClick" Style="{StaticResource PrimaryActionButtonStyle}" />
+        </Grid>
+
+        <Border x:Name="CalendarBorder" Grid.Row="1" Grid.Column="0" Style="{StaticResource GlassCardStyle}" Padding="12" Tapped="OnCalendarBorderTapped">
+            <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <!-- 顶部标题区域 / Header Area -->
-                <Grid Grid.Row="0" Margin="0,0,0,32">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Spacing="8">
-                        <TextBlock FontSize="32" FontWeight="SemiBold" Text="Calendar" Foreground="#0F2923" CharacterSpacing="10" />
-                        <TextBlock FontSize="13" FontWeight="Medium" Foreground="#6E8881" Text="点击日期数字查看当日详情 · 双击空白处新建日程" />
-                    </StackPanel>
-                    
-                    <Button Grid.Column="1" Click="OnAddScheduleClick" Padding="20,12" CornerRadius="12" VerticalAlignment="Center" BorderThickness="0" Background="#0D5D56">
-                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="8,0" VerticalAlignment="Center">
-                            <TextBlock Text="+" FontSize="18" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,-2,0,0"/>
-                            <TextBlock Text="新增日程" FontSize="14" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                </Grid>
-
-                <!-- 控制栏区域 / Controls Area (Month Picker, Today Button) -->
-                <Grid Grid.Row="1" Margin="0,0,0,24">
+                <Grid Grid.Row="0" Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
-                        <ComboBox x:Name="YearCombo" Width="100" SelectionChanged="OnYearMonthSelectionChanged" Background="#FFFFFF" BorderBrush="#E1EBE7" CornerRadius="8" />
-                        <TextBlock Text="年" VerticalAlignment="Center" Foreground="#1C3A33" FontWeight="SemiBold" Margin="0,0,8,0" />
-                        
-                        <ComboBox x:Name="MonthCombo" Width="80" SelectionChanged="OnYearMonthSelectionChanged" Background="#FFFFFF" BorderBrush="#E1EBE7" CornerRadius="8" />
-                        <TextBlock Text="月" VerticalAlignment="Center" Foreground="#1C3A33" FontWeight="SemiBold" />
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <ComboBox x:Name="YearCombo" Width="96" SelectionChanged="OnYearMonthSelectionChanged" />
+                        <ComboBox x:Name="MonthCombo" Width="80" SelectionChanged="OnYearMonthSelectionChanged" />
                     </StackPanel>
 
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12">
-                        <Button Click="OnPrevMonthClick" Background="#FFFFFF" BorderThickness="1" BorderBrush="#E1EBE7" Padding="12,8" CornerRadius="8" Foreground="#1C3A33">
-                            <TextBlock Text="&#xE72B;" FontFamily="Segoe MDL2 Assets" FontSize="12" FontWeight="Bold"/>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                        <Button Click="OnPrevMonthClick" Style="{StaticResource SecondaryActionButtonStyle}">
+                            <TextBlock Text="&#xE72B;" FontFamily="Segoe MDL2 Assets" />
                         </Button>
-                        <Button Click="OnNextMonthClick" Background="#FFFFFF" BorderThickness="1" BorderBrush="#E1EBE7" Padding="12,8" CornerRadius="8" Foreground="#1C3A33">
-                            <TextBlock Text="&#xE72A;" FontFamily="Segoe MDL2 Assets" FontSize="12" FontWeight="Bold"/>
+                        <Button Click="OnNextMonthClick" Style="{StaticResource SecondaryActionButtonStyle}">
+                            <TextBlock Text="&#xE72A;" FontFamily="Segoe MDL2 Assets" />
                         </Button>
-                        <Button Click="OnTodayClick" Padding="16,10" CornerRadius="8" Background="#FFFFFF" BorderThickness="1" BorderBrush="#E1EBE7" Margin="8,0,0,0">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <TextBlock Text="&#xE163;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="#0D5D56" VerticalAlignment="Center"/>
-                                <TextBlock Text="今天" FontSize="14" FontWeight="SemiBold" Foreground="#1C3A33" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
+                        <Button Click="OnTodayClick" Content="今天" Style="{StaticResource SecondaryActionButtonStyle}" />
+                        <Button Click="OnShowDetailsClick" Content="详情" Style="{StaticResource SecondaryActionButtonStyle}" />
                     </StackPanel>
                 </Grid>
 
-                <!-- 日历主卡片 / Main Calendar Card -->
-                <Border Grid.Row="2" CornerRadius="20" Background="#FFFFFF" BorderThickness="1" BorderBrush="#E1EBE7" Padding="20">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        
-                        <!-- 星期表头 / Week Headers -->
-                        <Grid Grid.Row="0" Margin="0,0,0,16">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="周日" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
-                            <TextBlock Grid.Column="1" Text="周一" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
-                            <TextBlock Grid.Column="2" Text="周二" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
-                            <TextBlock Grid.Column="3" Text="周三" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
-                            <TextBlock Grid.Column="4" Text="周四" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
-                            <TextBlock Grid.Column="5" Text="周五" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
-                            <TextBlock Grid.Column="6" Text="周六" FontSize="13" FontWeight="Bold" Foreground="#8FA39D" TextAlignment="Center" />
-                        </Grid>
+                <Grid Grid.Row="1" Margin="0,0,0,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="周日" HorizontalAlignment="Center" Foreground="{ThemeResource AppMutedBrush}" />
+                    <TextBlock Grid.Column="1" Text="周一" HorizontalAlignment="Center" Foreground="{ThemeResource AppMutedBrush}" />
+                    <TextBlock Grid.Column="2" Text="周二" HorizontalAlignment="Center" Foreground="{ThemeResource AppMutedBrush}" />
+                    <TextBlock Grid.Column="3" Text="周三" HorizontalAlignment="Center" Foreground="{ThemeResource AppMutedBrush}" />
+                    <TextBlock Grid.Column="4" Text="周四" HorizontalAlignment="Center" Foreground="{ThemeResource AppMutedBrush}" />
+                    <TextBlock Grid.Column="5" Text="周五" HorizontalAlignment="Center" Foreground="{ThemeResource AppMutedBrush}" />
+                    <TextBlock Grid.Column="6" Text="周六" HorizontalAlignment="Center" Foreground="{ThemeResource AppMutedBrush}" />
+                </Grid>
 
-                        <Grid x:Name="DaysGrid" Grid.Row="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*" />
-                                <RowDefinition Height="*" />
-                                <RowDefinition Height="*" />
-                                <RowDefinition Height="*" />
-                                <RowDefinition Height="*" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-                        </Grid>
-                    </Grid>
-                </Border>
-            </Grid>
-        </ScrollViewer>
-
-        <!-- 新建/编辑日程弹窗 -->
-        <Grid x:Name="EditOverlay" Visibility="Collapsed" Background="#660A1F18">
-            <Border CornerRadius="20" BorderThickness="1" BorderBrush="#E1EBE7" Padding="32" Width="440" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#FFFFFF">
-                <Grid RowSpacing="24">
+                <Grid x:Name="DaysGrid" Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
+                </Grid>
+            </Grid>
+        </Border>
 
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12">
-                        <TextBlock x:Name="PopupTitleText" FontSize="20" FontWeight="Bold" Text="新建日程" Foreground="#0F2923" />
-                        <Border Background="#F4F8F6" CornerRadius="6" Padding="10,4" VerticalAlignment="Center">
-                            <TextBlock x:Name="PopupDateText" FontSize="13" Foreground="#0D5D56" FontWeight="SemiBold" />
+        <Border x:Name="DetailsBorder" Grid.Row="1" Grid.Column="1" Style="{StaticResource GlassCardStyle}" Padding="12" Visibility="Collapsed">
+            <Grid RowSpacing="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel>
+                        <TextBlock x:Name="SelectedDateTitleText" FontSize="20" FontWeight="SemiBold" Foreground="{ThemeResource AppBrandBrush}" />
+                        <TextBlock x:Name="SelectedDateHintText" Style="{StaticResource SectionHintTextStyle}" Text="当日日程、提醒、待办会按时间顺序展示" />
+                    </StackPanel>
+
+                    <Button Grid.Column="1" Content="收起" Click="OnHideDetailsClick" Style="{StaticResource SecondaryActionButtonStyle}" />
+                </Grid>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Spacing="10">
+                        <Border Style="{StaticResource SurfaceCardStyle}" Padding="10">
+                            <Grid RowSpacing="8">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <TextBlock Text="日程" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource AppTitleBrush}" />
+                                        <TextBlock x:Name="ScheduleDetailCountText" Foreground="{ThemeResource AppMutedBrush}" />
+                                    </StackPanel>
+
+                                    <Button Grid.Column="1" Content="+" Click="OnAddScheduleForSelectedDateClick" Style="{StaticResource SecondaryActionButtonStyle}" />
+                                </Grid>
+
+                                <Grid Grid.Row="1">
+                                    <ListView x:Name="DayScheduleList"
+                                              IsItemClickEnabled="False"
+                                              SelectionMode="None"
+                                              ItemTemplate="{StaticResource ScheduleDetailTemplate}"
+                                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                              ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                              ScrollViewer.VerticalScrollMode="Disabled">
+                                        <ListView.ItemContainerStyle>
+                                            <Style TargetType="ListViewItem">
+                                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                                <Setter Property="Padding" Value="0" />
+                                                <Setter Property="Margin" Value="0,0,0,6" />
+                                            </Style>
+                                        </ListView.ItemContainerStyle>
+                                    </ListView>
+
+                                    <TextBlock x:Name="EmptyScheduleHintText"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Foreground="{ThemeResource AppMutedBrush}"
+                                               Text="当天暂无日程"
+                                               Visibility="Collapsed" />
+                                </Grid>
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource SurfaceCardStyle}" Padding="10">
+                            <Grid RowSpacing="8">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <TextBlock Text="提醒" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource AppTitleBrush}" />
+                                        <TextBlock x:Name="ReminderDetailCountText" Foreground="{ThemeResource AppMutedBrush}" />
+                                    </StackPanel>
+
+                                    <Button Grid.Column="1" Content="+" Click="OnAddReminderForSelectedDateClick" Style="{StaticResource SecondaryActionButtonStyle}" />
+                                </Grid>
+
+                                <Grid Grid.Row="1">
+                                    <ListView x:Name="DayReminderList"
+                                              IsItemClickEnabled="False"
+                                              SelectionMode="None"
+                                              ItemTemplate="{StaticResource ProductivityDetailTemplate}"
+                                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                              ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                              ScrollViewer.VerticalScrollMode="Disabled">
+                                        <ListView.ItemContainerStyle>
+                                            <Style TargetType="ListViewItem">
+                                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                                <Setter Property="Padding" Value="0" />
+                                                <Setter Property="Margin" Value="0,0,0,6" />
+                                            </Style>
+                                        </ListView.ItemContainerStyle>
+                                    </ListView>
+
+                                    <TextBlock x:Name="EmptyReminderHintText"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Foreground="{ThemeResource AppMutedBrush}"
+                                               Text="当天暂无提醒"
+                                               Visibility="Collapsed" />
+                                </Grid>
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource SurfaceCardStyle}" Padding="10">
+                            <Grid RowSpacing="8">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <TextBlock Text="待办" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource AppTitleBrush}" />
+                                        <TextBlock x:Name="TodoDetailCountText" Foreground="{ThemeResource AppMutedBrush}" />
+                                    </StackPanel>
+
+                                    <Button Grid.Column="1" Content="+" Click="OnAddTodoForSelectedDateClick" Style="{StaticResource SecondaryActionButtonStyle}" />
+                                </Grid>
+
+                                <Grid Grid.Row="1">
+                                    <ListView x:Name="DayTodoList"
+                                              IsItemClickEnabled="False"
+                                              SelectionMode="None"
+                                              ItemTemplate="{StaticResource ProductivityDetailTemplate}"
+                                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                              ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                              ScrollViewer.VerticalScrollMode="Disabled">
+                                        <ListView.ItemContainerStyle>
+                                            <Style TargetType="ListViewItem">
+                                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                                <Setter Property="Padding" Value="0" />
+                                                <Setter Property="Margin" Value="0,0,0,6" />
+                                            </Style>
+                                        </ListView.ItemContainerStyle>
+                                    </ListView>
+
+                                    <TextBlock x:Name="EmptyTodoHintText"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Foreground="{ThemeResource AppMutedBrush}"
+                                               Text="当天暂无待办"
+                                               Visibility="Collapsed" />
+                                </Grid>
+                            </Grid>
                         </Border>
                     </StackPanel>
-                    
-                    <TextBox x:Name="EditTitleBox" Grid.Row="1" Header="日程标题" PlaceholderText="想要做些什么?" Padding="12,12" CornerRadius="8" Background="#F9FBFA" BorderThickness="1" BorderBrush="#E1EBE7" Foreground="#1C3A33" />
-                    <TimePicker x:Name="EditTimePicker" Grid.Row="2" Header="开始时间" HorizontalAlignment="Stretch" />
-                    
-                    <Grid Grid.Row="3" Margin="0,16,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Button x:Name="DeleteBtn" Grid.Column="0" Content="删除" Click="OnDeleteScheduleClick" Padding="20,10" CornerRadius="8" Background="#FFF1F2" Foreground="#EF4444" FontWeight="SemiBold" BorderThickness="0" Visibility="Collapsed" />
-                        
-                        <Button Grid.Column="2" Content="取消" Click="OnCancelEditClick" Padding="24,10" CornerRadius="8" Background="Transparent" Foreground="#6E8881" FontWeight="SemiBold" Margin="0,0,12,0" BorderThickness="0" />
-                        <Button Grid.Column="3" Content="保存" Click="OnSaveScheduleClick" Padding="32,10" CornerRadius="8" Background="#0D5D56" Foreground="#FFFFFF" FontWeight="SemiBold" BorderThickness="0" />
-                    </Grid>
-                </Grid>
-            </Border>
-        </Grid>
-
-        <!-- 查看当日详情弹窗 -->
-        <Grid x:Name="DetailsOverlay" Visibility="Collapsed" Background="#660A1F18">
-            <Border CornerRadius="20" BorderThickness="1" BorderBrush="#E1EBE7" Padding="32" Width="400" MaxHeight="600" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#FFFFFF">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="0,0,0,24">
-                        <TextBlock x:Name="DetailDateTitle" FontSize="22" FontWeight="Bold" Foreground="#0F2923" />
-                        <TextBlock Text="今日日程" FontSize="14" Foreground="#8FA39D" VerticalAlignment="Bottom" Margin="0,0,0,3" />
-                    </StackPanel>
-
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,24">
-                        <ItemsControl x:Name="DetailSchedulesList">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border CornerRadius="10" Margin="0,0,0,12" Padding="16,14" Background="{Binding ColorBrush}">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Spacing="4">
-                                                <TextBlock FontSize="16" FontWeight="SemiBold" Text="{Binding Title}" Foreground="#FFFFFF" />
-                                                <TextBlock FontSize="13" Text="{Binding DisplayTime}" Foreground="#FFFFFF" Opacity="0.85" />
-                                            </StackPanel>
-                                            <Button Grid.Column="1" Content="编辑" Tag="{Binding Id}" Click="OnScheduleClick" Background="#33FFFFFF" Foreground="#FFFFFF" BorderThickness="0" Padding="12,6" CornerRadius="6" VerticalAlignment="Center" />
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-
-                    <Button Grid.Row="2" Content="关闭" Click="OnCloseDetailsClick" Padding="0,12" HorizontalAlignment="Stretch" CornerRadius="8" Background="#F4F8F6" Foreground="#1C3A33" FontWeight="SemiBold" BorderThickness="0" />
-                </Grid>
-            </Border>
-        </Grid>
+                </ScrollViewer>
+            </Grid>
+        </Border>
     </Grid>
 </Page>
-

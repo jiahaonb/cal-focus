@@ -1,35 +1,25 @@
-using CalFocus.App.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+using Microsoft.UI.Windowing;
+using System.Numerics;
+using Windows.Graphics;
+using WinRT.Interop;
 
 namespace CalFocus.App.Views.Pages;
 
 public sealed partial class CalendarSchedulePage : Page
 {
-    private static readonly Dictionary<string, string> ColorMap = new()
-    {
-        { "#0D5D56", "深绿" },
-        { "#22C55E", "翠绿" },
-        { "#F59E0B", "橙黄" },
-        { "#EF4444", "赤红" },
-        { "#3B82F6", "蔚蓝" },
-        { "#8B5CF6", "靛紫" }
-    };
+    private const int SideDetailsWidth = 430;
+    private const int SideDetailsExpandedWindowWidth = 1560;
 
     private App CurrentApp => (App)Application.Current;
     private DateTime _currentMonth = DateTime.Now;
-    private Guid? _editingScheduleId;
-    private DateOnly? _editingDate;
-    private string _selectedColor = "#0D5D56";
-    private DateTime _lastTapTime = DateTime.MinValue;
-    
+    private DateOnly _selectedDate = DateOnly.FromDateTime(DateTime.Now);
+    private DateOnly? _focusedDate = DateOnly.FromDateTime(DateTime.Now);
     private bool _isInitializing = true;
+    private bool _isSideDetailsVisible;
 
     public CalendarSchedulePage()
     {
@@ -38,10 +28,12 @@ public sealed partial class CalendarSchedulePage : Page
         InitializeComboBoxes();
 
         CurrentApp.ScheduleBoardService.SchedulesChanged += OnSchedulesChanged;
+        CurrentApp.ProductivityService.DataChanged += OnProductivityChanged;
         Unloaded += OnPageUnloaded;
 
         _isInitializing = false;
         RefreshCalendar();
+        ApplyDetailsVisibility();
     }
 
     private void InitializeComboBoxes()
@@ -50,6 +42,7 @@ public sealed partial class CalendarSchedulePage : Page
         {
             YearCombo.Items.Add(i);
         }
+
         for (int i = 1; i <= 12; i++)
         {
             MonthCombo.Items.Add(i);
@@ -59,22 +52,50 @@ public sealed partial class CalendarSchedulePage : Page
     private void OnPageUnloaded(object sender, RoutedEventArgs e)
     {
         CurrentApp.ScheduleBoardService.SchedulesChanged -= OnSchedulesChanged;
+        CurrentApp.ProductivityService.DataChanged -= OnProductivityChanged;
         Unloaded -= OnPageUnloaded;
     }
 
     private void OnSchedulesChanged()
     {
-        _ = DispatcherQueue.TryEnqueue(RefreshCalendar);
+        _ = DispatcherQueue.TryEnqueue(() =>
+        {
+            RefreshCalendar();
+            if (_isSideDetailsVisible)
+            {
+                RefreshSelectedDateDetails();
+            }
+        });
+    }
+
+    private void OnProductivityChanged()
+    {
+        _ = DispatcherQueue.TryEnqueue(() =>
+        {
+            if (_isSideDetailsVisible)
+            {
+                RefreshSelectedDateDetails();
+            }
+        });
     }
 
     private void OnYearMonthSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (_isInitializing) return;
+        if (_isInitializing)
+        {
+            return;
+        }
 
         if (YearCombo.SelectedItem is int year && MonthCombo.SelectedItem is int month)
         {
             _currentMonth = new DateTime(year, month, 1);
+            EnsureSelectedDateInCurrentMonth();
+            EnsureFocusedDateInCurrentMonth();
             RefreshCalendar();
+            if (_isSideDetailsVisible)
+            {
+                RefreshSelectedDateDetails();
+            }
         }
     }
 
@@ -88,19 +109,32 @@ public sealed partial class CalendarSchedulePage : Page
         var firstDay = new DateTime(_currentMonth.Year, _currentMonth.Month, 1);
         var lastDay = firstDay.AddMonths(1).AddDays(-1);
         var today = DateOnly.FromDateTime(DateTime.Now);
+        var startOffset = (int)firstDay.DayOfWeek;
 
-        int startOffset = (int)firstDay.DayOfWeek;
-        var allSchedules = CurrentApp.ScheduleBoardService.GetAll();
+        var scheduleCountByDate = CurrentApp.ScheduleBoardService
+            .GetAll()
+            .GroupBy(x => x.Date)
+            .ToDictionary(group => group.Key, group => group.Count());
 
         DaysGrid.Children.Clear();
         var template = (DataTemplate)Resources["DayCellTemplate"];
 
-        int currentDay = 1;
-        bool started = false;
+        var currentDay = 1;
+        var started = false;
 
-        for (int row = 0; row < 6; row++)
+        var todayBorderBrush = GetAppBrush("AppBrandBrush");
+        var selectedBorderBrush = GetAppBrush("AppBrandBrush");
+        var normalBorderBrush = GetAppBrush("AppBorderBrush");
+        var todayBgBrush = GetAppBrush("AppTodayHighlightBrush");
+        var normalBgBrush = GetAppBrush("AppCardBrush");
+        var todayBadgeBrush = GetAppBrush("AppTodayHighlightBrush");
+        var normalBadgeBrush = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(46, 255, 255, 255));
+        var todayTextBrush = GetAppBrush("AppBrandBrush");
+        var defaultTextBrush = GetAppBrush("AppTextBrush");
+
+        for (var row = 0; row < 6; row++)
         {
-            for (int col = 0; col < 7; col++)
+            for (var col = 0; col < 7; col++)
             {
                 if (!started && col >= startOffset)
                 {
@@ -113,45 +147,38 @@ public sealed partial class CalendarSchedulePage : Page
                 {
                     var date = new DateOnly(_currentMonth.Year, _currentMonth.Month, currentDay);
                     var isToday = date == today;
-                    var daySchedules = allSchedules
-                        .Where(x => x.Date == date)
-                        .OrderBy(x => x.StartTime ?? TimeSpan.MaxValue)
-                        .ThenBy(x => x.Title)
-                        .Select(x => new ScheduleItemDisplay
-                        {
-                            Id = x.Id,
-                            Title = x.Title,
-                            DisplayTime = x.StartTime.HasValue ? x.StartTime.Value.ToString(@"hh\:mm") : "全天",
-                            ColorBrush = GetColorBrush(x.Id)
-                        })
-                        .ToList();
+                    var isSelected = _focusedDate.HasValue && date == _focusedDate.Value;
+                    var count = scheduleCountByDate.TryGetValue(date, out var value) ? value : 0;
 
                     item = new CalendarDayItem
                     {
                         DayNumber = currentDay.ToString(),
                         Date = date,
                         IsToday = isToday,
-                        DayForeground = isToday
-                            ? new SolidColorBrush(Windows.UI.Color.FromArgb(255, 13, 93, 86)) // #0D5D56
-                            : new SolidColorBrush(Windows.UI.Color.FromArgb(255, 28, 58, 51)), // #1C3A33
-                        BorderBrush = isToday 
-                            ? new SolidColorBrush(Windows.UI.Color.FromArgb(255, 13, 93, 86)) 
-                            : new SolidColorBrush(Windows.UI.Color.FromArgb(255, 225, 235, 231)), // #E1EBE7
-                        BackgroundBrush = isToday
-                            ? new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255))
-                            : new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255)),
-                        Schedules = daySchedules.Take(4).ToList() // Only show up to 4 on calendar grid
+                        DayForeground = isToday ? todayTextBrush : defaultTextBrush,
+                        BorderBrush = isSelected ? selectedBorderBrush : (isToday ? todayBorderBrush : normalBorderBrush),
+                        BackgroundBrush = isToday ? todayBgBrush : normalBgBrush,
+                        DayBadgeBackground = isToday ? todayBadgeBrush : normalBadgeBrush,
+                        BorderThickness = isSelected ? new Thickness(2.2) : (isToday ? new Thickness(1.6) : new Thickness(1.2)),
+                        HoverBorderThickness = isSelected ? new Thickness(2.6) : (isToday ? new Thickness(2.0) : new Thickness(1.8)),
+                        ScheduleSummary = count > 0 ? $"{count}项日程" : string.Empty,
+                        ScheduleSummaryVisibility = count > 0 ? Visibility.Visible : Visibility.Collapsed
                     };
+
                     currentDay++;
                 }
                 else
                 {
-                    item = new CalendarDayItem 
-                    { 
+                    item = new CalendarDayItem
+                    {
                         IsPlaceholder = true,
-                        DayForeground = new SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0)),
-                        BackgroundBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0)),
-                        BorderBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0))
+                        DayForeground = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(0, 0, 0, 0)),
+                        BackgroundBrush = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(0, 0, 0, 0)),
+                        BorderBrush = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(0, 0, 0, 0)),
+                        DayBadgeBackground = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(0, 0, 0, 0)),
+                        BorderThickness = new Thickness(0),
+                        HoverBorderThickness = new Thickness(0),
+                        ScheduleSummaryVisibility = Visibility.Collapsed
                     };
                 }
 
@@ -166,62 +193,196 @@ public sealed partial class CalendarSchedulePage : Page
         }
     }
 
-    private SolidColorBrush GetColorBrush(Guid scheduleId)
-    {
-        var colors = new[] {
-            Windows.UI.Color.FromArgb(255, 13, 93, 86),  // #0D5D56
-            Windows.UI.Color.FromArgb(255, 34, 197, 94),  // #22C55E
-            Windows.UI.Color.FromArgb(255, 245, 158, 11),  // #F59E0B
-            Windows.UI.Color.FromArgb(255, 239, 68, 68),  // #EF4444
-            Windows.UI.Color.FromArgb(255, 59, 130, 246),  // #3B82F6
-            Windows.UI.Color.FromArgb(255, 139, 92, 246),  // #8B5CF6
-        };
-        var c = colors[Math.Abs(scheduleId.GetHashCode()) % colors.Length];
-        return new SolidColorBrush(c);
-    }
-
     private void OnPrevMonthClick(object sender, RoutedEventArgs e)
     {
         _currentMonth = _currentMonth.AddMonths(-1);
+        EnsureSelectedDateInCurrentMonth();
+        EnsureFocusedDateInCurrentMonth();
         RefreshCalendar();
+        if (_isSideDetailsVisible)
+        {
+            RefreshSelectedDateDetails();
+        }
     }
 
     private void OnNextMonthClick(object sender, RoutedEventArgs e)
     {
         _currentMonth = _currentMonth.AddMonths(1);
+        EnsureSelectedDateInCurrentMonth();
+        EnsureFocusedDateInCurrentMonth();
         RefreshCalendar();
+        if (_isSideDetailsVisible)
+        {
+            RefreshSelectedDateDetails();
+        }
     }
 
     private void OnTodayClick(object sender, RoutedEventArgs e)
     {
         _currentMonth = DateTime.Now;
+        _selectedDate = DateOnly.FromDateTime(DateTime.Now);
+        _focusedDate = _selectedDate;
         RefreshCalendar();
+
+        if (_isSideDetailsVisible)
+        {
+            RefreshSelectedDateDetails();
+        }
     }
 
     private void OnAddScheduleClick(object sender, RoutedEventArgs e)
     {
-        OpenEditOverlay(null, DateOnly.FromDateTime(DateTime.Now));
+        _selectedDate = _focusedDate ?? DateOnly.FromDateTime(DateTime.Now);
+        _focusedDate = _selectedDate;
+        RefreshCalendar();
+        _ = ShowScheduleEditorAsync(_selectedDate, null);
     }
 
-    private void OnDayNumberClick(object sender, RoutedEventArgs e)
+    private void OnDayCardTapped(object sender, TappedRoutedEventArgs e)
     {
-        if (sender is not Button button || button.Tag is not DateOnly date)
+        if (sender is not Border border || border.DataContext is not CalendarDayItem dayItem)
         {
             return;
         }
 
-        var now = DateTime.Now;
-        var timeSinceLastTap = (now - _lastTapTime).TotalMilliseconds;
+        if (dayItem.IsPlaceholder)
+        {
+            _focusedDate = null;
+            RefreshCalendar();
+            return;
+        }
 
-        OpenDayDetails(date);
+        _selectedDate = dayItem.Date;
+        _focusedDate = dayItem.Date;
+        RefreshCalendar();
+
+        if (_isSideDetailsVisible)
+        {
+            RefreshSelectedDateDetails();
+        }
     }
 
-    private void OpenDayDetails(DateOnly date)
+    private async void OnDayCardDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
-        DetailDateTitle.Text = date.ToString("yyyy年M月d日");
-        
-        var allSchedules = CurrentApp.ScheduleBoardService.GetAll();
-        var daySchedules = allSchedules
+        if (sender is not Border border || border.DataContext is not CalendarDayItem dayItem || dayItem.IsPlaceholder)
+        {
+            return;
+        }
+
+        _selectedDate = dayItem.Date;
+        _focusedDate = dayItem.Date;
+        RefreshCalendar();
+
+        if (IsFromNamedElement(e.OriginalSource as DependencyObject, "DayNumberBadgeBorder"))
+        {
+            await ShowDayDetailsPopupAsync(dayItem.Date);
+            e.Handled = true;
+            return;
+        }
+
+        await ShowScheduleEditorAsync(dayItem.Date, null);
+        e.Handled = true;
+    }
+
+    private void OnCalendarBorderTapped(object sender, TappedRoutedEventArgs e)
+    {
+        if (IsFromNamedElement(e.OriginalSource as DependencyObject, "DayCardBorder"))
+        {
+            return;
+        }
+
+        if (_focusedDate is null)
+        {
+            return;
+        }
+
+        _focusedDate = null;
+        RefreshCalendar();
+    }
+
+    private void OnShowDetailsClick(object sender, RoutedEventArgs e)
+    {
+        _selectedDate = _focusedDate ?? _selectedDate;
+        _focusedDate ??= _selectedDate;
+        var wasVisible = _isSideDetailsVisible;
+        _isSideDetailsVisible = true;
+        if (!wasVisible)
+        {
+            EnsureMainWindowExpandedForSideDetails();
+        }
+        ApplyDetailsVisibility();
+        RefreshCalendar();
+        RefreshSelectedDateDetails();
+    }
+
+    private void OnHideDetailsClick(object sender, RoutedEventArgs e)
+    {
+        _isSideDetailsVisible = false;
+        ApplyDetailsVisibility();
+        RefreshCalendar();
+    }
+
+    private void ApplyDetailsVisibility()
+    {
+        DetailsBorder.Visibility = _isSideDetailsVisible ? Visibility.Visible : Visibility.Collapsed;
+        DetailColumn.Width = _isSideDetailsVisible
+            ? new GridLength(SideDetailsWidth, GridUnitType.Pixel)
+            : new GridLength(0, GridUnitType.Pixel);
+    }
+
+    private void EnsureMainWindowExpandedForSideDetails()
+    {
+        if (CurrentApp.MainWindow is null)
+        {
+            return;
+        }
+
+        var hwnd = WindowNative.GetWindowHandle(CurrentApp.MainWindow);
+        if (hwnd == IntPtr.Zero)
+        {
+            return;
+        }
+
+        var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
+        var appWindow = AppWindow.GetFromWindowId(windowId);
+
+        var targetWidth = Math.Max(appWindow.Size.Width, SideDetailsExpandedWindowWidth);
+        var targetHeight = Math.Max(appWindow.Size.Height, 920);
+        appWindow.Resize(new SizeInt32(targetWidth, targetHeight));
+    }
+
+    private void RefreshSelectedDateDetails()
+    {
+        if (!_isSideDetailsVisible)
+        {
+            return;
+        }
+
+        SelectedDateTitleText.Text = _selectedDate.ToString("yyyy年M月d日");
+        SelectedDateHintText.Text = "当日日程、提醒、待办会按时间顺序展示";
+
+        var snapshot = BuildDayDetailsSnapshot(_selectedDate);
+
+        DayScheduleList.ItemsSource = snapshot.Schedules;
+        ScheduleDetailCountText.Text = $"共 {snapshot.Schedules.Count} 条";
+        EmptyScheduleHintText.Visibility = snapshot.Schedules.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+
+        DayReminderList.ItemsSource = snapshot.Reminders;
+        ReminderDetailCountText.Text = $"共 {snapshot.Reminders.Count} 项";
+        EmptyReminderHintText.Visibility = snapshot.Reminders.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+
+        DayTodoList.ItemsSource = snapshot.Todos;
+        TodoDetailCountText.Text = $"共 {snapshot.Todos.Count} 项";
+        EmptyTodoHintText.Visibility = snapshot.Todos.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private DayDetailsSnapshot BuildDayDetailsSnapshot(DateOnly date)
+    {
+        var dayStart = new DateTimeOffset(date.ToDateTime(TimeOnly.MinValue));
+        var dayEnd = dayStart.AddDays(1);
+
+        var daySchedules = CurrentApp.ScheduleBoardService
+            .GetAll()
             .Where(x => x.Date == date)
             .OrderBy(x => x.StartTime ?? TimeSpan.MaxValue)
             .ThenBy(x => x.Title)
@@ -229,27 +390,61 @@ public sealed partial class CalendarSchedulePage : Page
             {
                 Id = x.Id,
                 Title = x.Title,
-                DisplayTime = x.StartTime.HasValue ? x.StartTime.Value.ToString(@"hh\:mm") : "全天",
-                ColorBrush = GetColorBrush(x.Id)
+                DisplayTime = x.StartTime.HasValue
+                    ? $"{x.Date:MM-dd} {x.StartTime.Value:hh\\:mm}"
+                    : $"{x.Date:MM-dd} 全天"
             })
             .ToList();
 
-        DetailSchedulesList.ItemsSource = daySchedules;
-        DetailsOverlay.Visibility = Visibility.Visible;
-    }
+        var dayReminders = CurrentApp.ProductivityService
+            .GetReminders()
+            .Where(x => x.EventAt >= dayStart && x.EventAt < dayEnd)
+            .OrderBy(x => x.EventAt)
+            .ThenBy(x => x.ReminderAt)
+            .Select(x => new ProductivityItemDisplay
+            {
+                Id = x.Id,
+                Title = x.Title,
+                DisplaySummary = $"事件 {x.EventAt:HH:mm} · 提醒 {x.ReminderAt:HH:mm}"
+            })
+            .ToList();
 
-    private void OnCloseDetailsClick(object sender, RoutedEventArgs e)
-    {
-        DetailsOverlay.Visibility = Visibility.Collapsed;
-    }
+        var dayTodos = CurrentApp.ProductivityService
+            .GetTodos(includeCompleted: true)
+            .Where(x => x.DueAt >= dayStart && x.DueAt < dayEnd)
+            .OrderBy(x => x.DueAt)
+            .ThenBy(x => x.Title)
+            .Select(x => new ProductivityItemDisplay
+            {
+                Id = x.Id,
+                Title = x.Title,
+                DisplaySummary = x.IsCompleted
+                    ? $"已完成 · DDL {x.DueAt:HH:mm}"
+                    : $"DDL {x.DueAt:HH:mm}"
+            })
+            .ToList();
 
-    private void OnSchedulesAreaDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
-    {
-        if (sender is not Border border || border.Tag is not DateOnly date)
+        return new DayDetailsSnapshot
         {
-            return;
-        }
-        OpenEditOverlay(null, date);
+            Schedules = daySchedules,
+            Reminders = dayReminders,
+            Todos = dayTodos
+        };
+    }
+
+    private void OnAddScheduleForSelectedDateClick(object sender, RoutedEventArgs e)
+    {
+        _ = ShowScheduleEditorAsync(_selectedDate, null);
+    }
+
+    private void OnAddReminderForSelectedDateClick(object sender, RoutedEventArgs e)
+    {
+        _ = ShowReminderCreatorAsync(_selectedDate);
+    }
+
+    private void OnAddTodoForSelectedDateClick(object sender, RoutedEventArgs e)
+    {
+        _ = ShowTodoCreatorAsync(_selectedDate);
     }
 
     private void OnScheduleClick(object sender, RoutedEventArgs e)
@@ -258,120 +453,433 @@ public sealed partial class CalendarSchedulePage : Page
         {
             return;
         }
-        EditSchedule(id);
+
+        _ = ShowScheduleEditorAsync(_selectedDate, id);
     }
 
-    private void EditSchedule(Guid id)
+    private async Task ShowScheduleEditorAsync(DateOnly date, Guid? scheduleId)
     {
-        var schedules = CurrentApp.ScheduleBoardService.GetAll();
-        var schedule = schedules.FirstOrDefault(x => x.Id == id);
-        if (schedule is null) return;
+        var existing = scheduleId.HasValue
+            ? CurrentApp.ScheduleBoardService.GetAll().FirstOrDefault(x => x.Id == scheduleId.Value)
+            : null;
 
-        OpenEditOverlay(id, schedule.Date);
-        EditTitleBox.Text = schedule.Title;
-        EditTimePicker.Time = schedule.StartTime ?? new TimeSpan(9, 0, 0);
-    }
-
-    private void OpenEditOverlay(Guid? id, DateOnly date)
-    {
-        DetailsOverlay.Visibility = Visibility.Collapsed; // Close detail if open
-        
-        bool isNew = !id.HasValue;
-        _editingScheduleId = id;
-        _editingDate = date;
-        _selectedColor = "#0D5D56";
-        
-        if (isNew)
+        var titleBox = new TextBox
         {
-            EditTitleBox.Text = "";
-            EditTimePicker.Time = new TimeSpan(9, 0, 0);
+            Header = "日程标题",
+            PlaceholderText = "输入事件名称",
+            Text = existing?.Title ?? string.Empty
+        };
+        var timePicker = new TimePicker
+        {
+            Header = "开始时间",
+            Time = existing?.StartTime ?? new TimeSpan(9, 0, 0)
+        };
+
+        var panel = new StackPanel
+        {
+            Spacing = 10,
+            Children =
+            {
+                new TextBlock
+                {
+                    Text = date.ToString("yyyy年M月d日"),
+                    Foreground = GetAppBrush("AppMutedBrush")
+                },
+                titleBox,
+                timePicker
+            }
+        };
+
+        var dialog = new ContentDialog
+        {
+            Title = scheduleId.HasValue ? "编辑日程" : "新建日程",
+            Content = panel,
+            PrimaryButtonText = "保存",
+            CloseButtonText = "取消",
+            SecondaryButtonText = scheduleId.HasValue ? "删除" : string.Empty,
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot
+        };
+
+        var result = await dialog.ShowAsync();
+        if (result == ContentDialogResult.Primary)
+        {
+            if (string.IsNullOrWhiteSpace(titleBox.Text))
+            {
+                return;
+            }
+
+            if (scheduleId.HasValue)
+            {
+                CurrentApp.ScheduleBoardService.Update(scheduleId.Value, titleBox.Text.Trim(), timePicker.Time, "无");
+            }
+            else
+            {
+                CurrentApp.ScheduleBoardService.Add(titleBox.Text.Trim(), date, timePicker.Time, "无");
+            }
+
+            _selectedDate = date;
+            _focusedDate = date;
+            RefreshCalendar();
+            if (_isSideDetailsVisible)
+            {
+                RefreshSelectedDateDetails();
+            }
+            return;
         }
 
-        PopupTitleText.Text = isNew ? "新建日程" : "编辑日程";
-        PopupDateText.Text = date.ToString("M月d日");
-        DeleteBtn.Visibility = isNew ? Visibility.Collapsed : Visibility.Visible;
-        
-        EditOverlay.Visibility = Visibility.Visible;
-    }
-
-    private void OnColorClick(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button button && button.Tag is string color)
+        if (result == ContentDialogResult.Secondary && scheduleId.HasValue)
         {
-            _selectedColor = color;
+            CurrentApp.ScheduleBoardService.Delete(scheduleId.Value);
+            RefreshCalendar();
+            if (_isSideDetailsVisible)
+            {
+                RefreshSelectedDateDetails();
+            }
         }
     }
 
-    private void OnSaveScheduleClick(object sender, RoutedEventArgs e)
+    private async Task ShowReminderCreatorAsync(DateOnly date)
     {
-        if (string.IsNullOrWhiteSpace(EditTitleBox.Text) || _editingDate is null)
+        var titleBox = new TextBox
+        {
+            Header = "提醒标题",
+            PlaceholderText = "例如：项目站会"
+        };
+
+        var eventTimePicker = new TimePicker
+        {
+            Header = "事件时间",
+            Time = new TimeSpan(9, 0, 0)
+        };
+
+        var reminderTimePicker = new TimePicker
+        {
+            Header = "提醒时间",
+            Time = new TimeSpan(8, 50, 0)
+        };
+
+        var panel = new StackPanel
+        {
+            Spacing = 10,
+            Children =
+            {
+                new TextBlock
+                {
+                    Text = date.ToString("yyyy年M月d日"),
+                    Foreground = GetAppBrush("AppMutedBrush")
+                },
+                titleBox,
+                eventTimePicker,
+                reminderTimePicker
+            }
+        };
+
+        var dialog = new ContentDialog
+        {
+            Title = "新增提醒",
+            Content = panel,
+            PrimaryButtonText = "保存",
+            CloseButtonText = "取消",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot
+        };
+
+        var result = await dialog.ShowAsync();
+        if (result != ContentDialogResult.Primary || string.IsNullOrWhiteSpace(titleBox.Text))
         {
             return;
         }
 
-        if (_editingScheduleId.HasValue)
+        var eventAt = new DateTimeOffset(date.ToDateTime(TimeOnly.FromTimeSpan(eventTimePicker.Time)));
+        var reminderAt = new DateTimeOffset(date.ToDateTime(TimeOnly.FromTimeSpan(reminderTimePicker.Time)));
+
+        CurrentApp.ProductivityService.AddReminder(titleBox.Text.Trim(), eventAt, reminderAt);
+        _selectedDate = date;
+        _focusedDate = date;
+        RefreshCalendar();
+        if (_isSideDetailsVisible)
         {
-            CurrentApp.ScheduleBoardService.Update(
-                _editingScheduleId.Value,
-                EditTitleBox.Text.Trim(),
-                EditTimePicker.Time,
-                "无"
-            );
+            RefreshSelectedDateDetails();
+        }
+    }
+
+    private async Task ShowTodoCreatorAsync(DateOnly date)
+    {
+        var titleBox = new TextBox
+        {
+            Header = "待办名称",
+            PlaceholderText = "输入待办标题"
+        };
+
+        var dueTimePicker = new TimePicker
+        {
+            Header = "DDL 时间",
+            Time = new TimeSpan(18, 0, 0)
+        };
+
+        var panel = new StackPanel
+        {
+            Spacing = 10,
+            Children =
+            {
+                new TextBlock
+                {
+                    Text = date.ToString("yyyy年M月d日"),
+                    Foreground = GetAppBrush("AppMutedBrush")
+                },
+                titleBox,
+                dueTimePicker
+            }
+        };
+
+        var dialog = new ContentDialog
+        {
+            Title = "新增待办",
+            Content = panel,
+            PrimaryButtonText = "保存",
+            CloseButtonText = "取消",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot
+        };
+
+        var result = await dialog.ShowAsync();
+        if (result != ContentDialogResult.Primary || string.IsNullOrWhiteSpace(titleBox.Text))
+        {
+            return;
+        }
+
+        var dueAt = new DateTimeOffset(date.ToDateTime(TimeOnly.FromTimeSpan(dueTimePicker.Time)));
+        CurrentApp.ProductivityService.AddTodo(titleBox.Text.Trim(), dueAt);
+        _selectedDate = date;
+        _focusedDate = date;
+        RefreshCalendar();
+        if (_isSideDetailsVisible)
+        {
+            RefreshSelectedDateDetails();
+        }
+    }
+
+    private async Task ShowDayDetailsPopupAsync(DateOnly date)
+    {
+        var snapshot = BuildDayDetailsSnapshot(date);
+
+        var root = new StackPanel
+        {
+            Spacing = 10
+        };
+
+        root.Children.Add(CreatePopupSection("日程", snapshot.Schedules.Select(x => $"{x.DisplayTime} · {x.Title}")));
+        root.Children.Add(CreatePopupSection("提醒", snapshot.Reminders.Select(x => $"{x.Title} · {x.DisplaySummary}")));
+        root.Children.Add(CreatePopupSection("待办", snapshot.Todos.Select(x => $"{x.Title} · {x.DisplaySummary}")));
+
+        var dialog = new ContentDialog
+        {
+            Title = $"{date:yyyy年M月d日} 详情",
+            Content = new ScrollViewer
+            {
+                MaxHeight = 540,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                Content = root
+            },
+            CloseButtonText = "关闭",
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = XamlRoot
+        };
+
+        await dialog.ShowAsync();
+    }
+
+    private static Border CreatePopupSection(string title, IEnumerable<string> lines)
+    {
+        var lineList = lines.ToList();
+
+        var stack = new StackPanel
+        {
+            Spacing = 4,
+            Children =
+            {
+                new TextBlock
+                {
+                    Text = title,
+                    FontSize = 16,
+                    FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
+                }
+            }
+        };
+
+        if (lineList.Count == 0)
+        {
+            stack.Children.Add(new TextBlock
+            {
+                Text = "当天暂无内容",
+                Opacity = 0.65,
+                TextWrapping = TextWrapping.Wrap
+            });
         }
         else
         {
-            CurrentApp.ScheduleBoardService.Add(
-                EditTitleBox.Text.Trim(),
-                _editingDate.Value,
-                EditTimePicker.Time,
-                "无"
-            );
+            foreach (var line in lineList.Take(8))
+            {
+                stack.Children.Add(new TextBlock
+                {
+                    Text = "• " + line,
+                    TextWrapping = TextWrapping.Wrap,
+                    Opacity = 0.9
+                });
+            }
         }
 
-        EditOverlay.Visibility = Visibility.Collapsed;
-        
-        // If we were viewing details, refresh details view
-        if (DetailsOverlay.Visibility == Visibility.Visible && _editingDate.HasValue)
+        return new Border
         {
-            OpenDayDetails(_editingDate.Value);
-        }
+            CornerRadius = new CornerRadius(14),
+            BorderBrush = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(70, 255, 255, 255)),
+            BorderThickness = new Thickness(1),
+            Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(105, 255, 255, 255)),
+            Padding = new Thickness(10),
+            Child = stack
+        };
     }
 
-    private void OnCancelEditClick(object sender, RoutedEventArgs e)
+    private void OnDayCardPointerEntered(object sender, PointerRoutedEventArgs e)
     {
-        EditOverlay.Visibility = Visibility.Collapsed;
+        if (!CurrentApp.UiSettingsService.Current.EnableHoverFeedback)
+        {
+            return;
+        }
+
+        if (sender is not Border border || border.DataContext is not CalendarDayItem dayItem || dayItem.IsPlaceholder)
+        {
+            return;
+        }
+
+        border.Translation = new Vector3(0, -2, 0);
+        border.BorderThickness = dayItem.HoverBorderThickness;
     }
 
-    private void OnDeleteScheduleClick(object sender, RoutedEventArgs e)
+    private void OnDayCardPointerExited(object sender, PointerRoutedEventArgs e)
     {
-        if (!_editingScheduleId.HasValue) return;
-        CurrentApp.ScheduleBoardService.Delete(_editingScheduleId.Value);
-        EditOverlay.Visibility = Visibility.Collapsed;
-        
-        if (DetailsOverlay.Visibility == Visibility.Visible && _editingDate.HasValue)
+        if (sender is not Border border || border.DataContext is not CalendarDayItem dayItem || dayItem.IsPlaceholder)
         {
-            OpenDayDetails(_editingDate.Value);
+            return;
         }
+
+        border.Translation = new Vector3(0, 0, 0);
+        border.BorderThickness = dayItem.BorderThickness;
+    }
+
+    private Brush GetAppBrush(string key)
+    {
+        if (Application.Current.Resources.TryGetValue(key, out var value) && value is Brush brush)
+        {
+            return brush;
+        }
+
+        return new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+    }
+
+    private void EnsureSelectedDateInCurrentMonth()
+    {
+        if (_selectedDate.Year == _currentMonth.Year && _selectedDate.Month == _currentMonth.Month)
+        {
+            return;
+        }
+
+        var day = Math.Min(_selectedDate.Day, DateTime.DaysInMonth(_currentMonth.Year, _currentMonth.Month));
+        _selectedDate = new DateOnly(_currentMonth.Year, _currentMonth.Month, day);
+    }
+
+    private void EnsureFocusedDateInCurrentMonth()
+    {
+        if (_focusedDate is null)
+        {
+            return;
+        }
+
+        if (_focusedDate.Value.Year == _currentMonth.Year && _focusedDate.Value.Month == _currentMonth.Month)
+        {
+            return;
+        }
+
+        _focusedDate = null;
+    }
+
+    private static bool TryGetDateFromTag(object? tag, out DateOnly date)
+    {
+        if (tag is DateOnly dateOnly && dateOnly.Year >= 1900)
+        {
+            date = dateOnly;
+            return true;
+        }
+
+        if (tag is DateTime dateTime)
+        {
+            date = DateOnly.FromDateTime(dateTime);
+            return true;
+        }
+
+        if (tag is DateTimeOffset dateTimeOffset)
+        {
+            date = DateOnly.FromDateTime(dateTimeOffset.DateTime);
+            return true;
+        }
+
+        date = default;
+        return false;
+    }
+
+    private static bool IsFromNamedElement(DependencyObject? source, string targetName)
+    {
+        var current = source;
+
+        while (current is not null)
+        {
+            if (current is FrameworkElement element && string.Equals(element.Name, targetName, StringComparison.Ordinal))
+            {
+                return true;
+            }
+
+            current = VisualTreeHelper.GetParent(current);
+        }
+
+        return false;
     }
 }
 
 public sealed class CalendarDayItem
 {
-    public string DayNumber { get; set; } = "";
+    public string DayNumber { get; set; } = string.Empty;
     public DateOnly Date { get; set; }
-    public bool IsPlaceholder { get; set; } = false;
-    public bool IsToday { get; set; } = false;
-    public Brush DayForeground { get; set; } = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 28, 58, 51));
-    public Brush BackgroundBrush { get; set; } = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
-    public Brush BorderBrush { get; set; } = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 225, 235, 231));
-    public List<ScheduleItemDisplay> Schedules { get; set; } = new();
+    public bool IsPlaceholder { get; set; }
+    public bool IsToday { get; set; }
+    public Brush DayForeground { get; set; } = new SolidColorBrush(Microsoft.UI.Colors.Black);
+    public Brush BackgroundBrush { get; set; } = new SolidColorBrush(Microsoft.UI.Colors.White);
+    public Brush BorderBrush { get; set; } = new SolidColorBrush(Microsoft.UI.Colors.White);
+    public Thickness BorderThickness { get; set; } = new Thickness(1.2);
+    public Thickness HoverBorderThickness { get; set; } = new Thickness(1.8);
+    public Brush DayBadgeBackground { get; set; } = new SolidColorBrush(Microsoft.UI.Colors.White);
+    public string ScheduleSummary { get; set; } = string.Empty;
+    public Visibility ScheduleSummaryVisibility { get; set; } = Visibility.Collapsed;
 }
 
 public sealed class ScheduleItemDisplay
 {
     public Guid Id { get; set; }
-    public string Title { get; set; } = "";
-    public string DisplayTime { get; set; } = "";
-    public Brush ColorBrush { get; set; } = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 13, 93, 86));
+    public string Title { get; set; } = string.Empty;
+    public string DisplayTime { get; set; } = string.Empty;
 }
 
+public sealed class ProductivityItemDisplay
+{
+    public Guid Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string DisplaySummary { get; set; } = string.Empty;
+}
+
+public sealed class DayDetailsSnapshot
+{
+    public List<ScheduleItemDisplay> Schedules { get; set; } = new();
+    public List<ProductivityItemDisplay> Reminders { get; set; } = new();
+    public List<ProductivityItemDisplay> Todos { get; set; } = new();
+}

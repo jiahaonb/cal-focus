@@ -15,4 +15,8 @@ public sealed class AppDataPathService : IAppDataPathService
     public string WidgetLayoutPath => Path.Combine(AppDataRoot, "widgets.layout.json");
 
     public string TraySettingsPath => Path.Combine(AppDataRoot, "tray.settings.json");
+
+    public string UiSettingsPath => Path.Combine(AppDataRoot, "ui.settings.json");
+
+    public string ProductivityDataPath => Path.Combine(AppDataRoot, "productivity.data.json");
 }

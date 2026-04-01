@@ -7,4 +7,6 @@ public interface IAppDataPathService
     string ThemeProfilePath { get; }
     string WidgetLayoutPath { get; }
     string TraySettingsPath { get; }
+    string UiSettingsPath { get; }
+    string ProductivityDataPath { get; }
 }

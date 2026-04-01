@@ -6,27 +6,43 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     mc:Ignorable="d">
-    <Grid Padding="24">
-        <StackPanel Spacing="14" MaxWidth="560">
-            <TextBlock FontSize="28" FontWeight="SemiBold" Text="小组件中心" />
-            <TextBlock Opacity="0.8" Text="当前阶段支持最小版桌面时钟/日程组件，可进行添加、删除与复制。" />
+    <Grid Style="{StaticResource PageRootGridStyle}">
+        <StackPanel Padding="24" Spacing="14">
+            <StackPanel Spacing="4">
+                <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="小组件中心" />
+                <TextBlock Style="{StaticResource SectionHintTextStyle}" Text="选择一个静态预览卡片即可添加对应桌面组件。" />
+                <TextBlock x:Name="WidgetCountText" FontSize="12" Foreground="{ThemeResource AppMutedBrush}" Text="当前数量：0" />
+            </StackPanel>
 
-            <Border Padding="16" CornerRadius="12" BorderThickness="1" BorderBrush="#33FFFFFF" Background="#22000000">
-                <StackPanel Spacing="10">
-                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="组件操作" />
-                    <TextBlock x:Name="WidgetCountText" Text="当前数量：0" />
+            <GridView x:Name="WidgetPreviewGrid" IsItemClickEnabled="False" SelectionMode="None" HorizontalAlignment="Stretch">
+                <GridView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <ItemsWrapGrid Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </GridView.ItemsPanel>
+                <GridView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource GlassCardStyle}" Width="320" Margin="0,0,12,12">
+                            <StackPanel Spacing="10">
+                                <Border Height="120" Style="{StaticResource SurfaceCardStyle}" Padding="10">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock FontSize="12" Foreground="{ThemeResource AppMutedBrush}" Text="{Binding PreviewLabel}" />
+                                        <TextBlock FontSize="28" FontWeight="SemiBold" Foreground="{ThemeResource AppBrandBrush}" Text="{Binding PreviewPrimary}" />
+                                        <TextBlock FontSize="13" Foreground="{ThemeResource AppMutedBrush}" Text="{Binding PreviewSecondary}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
 
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <Button Content="添加时钟组件" Click="OnAddClockWidgetClick" />
-                        <Button Content="添加日程组件" Click="OnAddScheduleWidgetClick" />
-                    </StackPanel>
+                                <StackPanel Spacing="4">
+                                    <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="{ThemeResource AppTitleBrush}" Text="{Binding Name}" />
+                                    <TextBlock FontSize="12" Foreground="{ThemeResource AppMutedBrush}" Text="{Binding Description}" TextWrapping="Wrap" />
+                                </StackPanel>
 
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <Button Content="复制最后一个组件" Click="OnCopyLastWidgetClick" />
-                        <Button Content="删除最后一个组件" Click="OnRemoveLastWidgetClick" />
-                    </StackPanel>
-                </StackPanel>
-            </Border>
+                                <Button Content="添加" Tag="{Binding WidgetType}" Click="OnAddWidgetClick" Style="{StaticResource PrimaryActionButtonStyle}" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </GridView.ItemTemplate>
+            </GridView>
         </StackPanel>
     </Grid>
 </Page>

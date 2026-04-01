@@ -12,28 +12,8 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+                <ResourceDictionary Source="ms-appx:///Styles/DesignSystem.xaml" />
             </ResourceDictionary.MergedDictionaries>
-
-            <!-- Global App Colors -->
-            <Color x:Key="AppBrandColor">#0D5D56</Color>
-            <Color x:Key="AppBackgroundColor">#F4F7F6</Color>
-            <Color x:Key="AppCardColor">#FFFFFF</Color>
-            <Color x:Key="AppTextColor">#333333</Color>
-            <Color x:Key="AppMutedColor">#8FA3A0</Color>
-            <Color x:Key="AppBorderColor">#E5EBE9</Color>
-            <Color x:Key="AppTitleColor">#111827</Color>
-            <Color x:Key="AppHoverColor">#E0EBE9</Color>
-
-            <!-- Directly defined Brushes (Safest pattern for WinUI 3 XAML Parser) -->
-            <SolidColorBrush x:Key="AppBrandBrush" Color="#0D5D56" />
-            <SolidColorBrush x:Key="AppBackgroundBrush" Color="#F4F7F6" />
-            <SolidColorBrush x:Key="AppCardBrush" Color="#FFFFFF" />
-            <SolidColorBrush x:Key="AppTextBrush" Color="#333333" />
-            <SolidColorBrush x:Key="AppMutedBrush" Color="#8FA3A0" />
-            <SolidColorBrush x:Key="AppBorderBrush" Color="#E5EBE9" />
-            <SolidColorBrush x:Key="AppTitleBrush" Color="#111827" />
-            <SolidColorBrush x:Key="AppHoverBrush" Color="#E0EBE9" />
-
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -7,15 +7,26 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Background="{ThemeResource AppBackgroundBrush}">
-        <NavigationView x:Name="RootNav" SelectionChanged="OnSelectionChanged" Background="{ThemeResource AppCardBrush}" OpenPaneLength="220" IsBackButtonVisible="Collapsed">
+    <Grid Style="{StaticResource PageRootGridStyle}">
+        <NavigationView
+            x:Name="RootNav"
+            Background="{ThemeResource AppSurfaceBrush}"
+            IsBackButtonVisible="Collapsed"
+            IsSettingsVisible="False"
+            OpenPaneLength="236"
+            PaneDisplayMode="Left"
+            SelectionChanged="OnSelectionChanged">
             <NavigationView.MenuItems>
                 <NavigationViewItem Icon="Home" Content="主页" Tag="home" Foreground="{ThemeResource AppTextBrush}" />
                 <NavigationViewItem Icon="Calendar" Content="日历日程" Tag="calendar" Foreground="{ThemeResource AppTextBrush}" />
                 <NavigationViewItem Icon="Accept" Content="待办提醒" Tag="todoreminder" Foreground="{ThemeResource AppTextBrush}" />
-                <NavigationViewItem Icon="Go" Content="小组件" Tag="widgets" Foreground="{ThemeResource AppTextBrush}" />
-                <NavigationViewItem Icon="Setting" Content="主题外观" Tag="theme" Foreground="{ThemeResource AppTextBrush}" />
+                <NavigationViewItem Icon="Go" Content="小组件中心" Tag="widgets" Foreground="{ThemeResource AppTextBrush}" />
+                <NavigationViewItem Icon="Setting" Content="设置" Tag="settings" Foreground="{ThemeResource AppTextBrush}" />
             </NavigationView.MenuItems>
+
+            <NavigationView.FooterMenuItems>
+                <NavigationViewItem Icon="Help" Content="帮助关于" Tag="helpabout" Foreground="{ThemeResource AppTextBrush}" />
+            </NavigationView.FooterMenuItems>
 
             <Frame x:Name="ContentFrame" Padding="0,0,0,0" Background="{ThemeResource AppBackgroundBrush}" />
         </NavigationView>

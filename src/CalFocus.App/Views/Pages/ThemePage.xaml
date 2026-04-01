@@ -8,38 +8,102 @@
     mc:Ignorable="d"
     Background="{ThemeResource AppBackgroundBrush}">
 
-    <ScrollViewer Padding="40" VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="32" MaxWidth="800" HorizontalAlignment="Left">
-            
-            <StackPanel Spacing="8">
-                <TextBlock FontSize="32" FontWeight="SemiBold" Text="外观与主题" Foreground="{ThemeResource AppTitleBrush}" />
-                <TextBlock FontSize="14" Foreground="{ThemeResource AppMutedBrush}" Text="选择属于您的日程界面风格色彩。" />
-            </StackPanel>
+    <Grid Style="{StaticResource PageRootGridStyle}" Padding="16">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <Grid RowSpacing="12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-            <Border Padding="32" CornerRadius="16" BorderThickness="1" BorderBrush="{ThemeResource AppBorderBrush}" Background="{ThemeResource AppCardBrush}">
-                <StackPanel Spacing="16">
-                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="系统色彩" Foreground="{ThemeResource AppTitleBrush}" />
-                    
-                    <StackPanel Orientation="Horizontal" Spacing="16">
-                        <!-- 极客绿 -->
-                        <Button Background="#E5F3F1" BorderThickness="1" BorderBrush="{ThemeResource AppBorderBrush}" Padding="24,16" CornerRadius="12" Click="OnGreenThemeClick">
-                            <StackPanel Spacing="8">
-                                <Ellipse Width="32" Height="32" Fill="#0D5D56" />
-                                <TextBlock Text="Titan 绿" Foreground="#0D5D56" FontWeight="Medium" HorizontalAlignment="Center" />
-                            </StackPanel>
-                        </Button>
-
-                        <!-- 深海蓝 -->
-                        <Button Background="#E8F0FE" BorderThickness="1" BorderBrush="{ThemeResource AppBorderBrush}" Padding="24,16" CornerRadius="12" Click="OnBlueThemeClick">
-                            <StackPanel Spacing="8">
-                                <Ellipse Width="32" Height="32" Fill="#1E3A8A" />
-                                <TextBlock Text="Ocean 蓝" Foreground="#1E3A8A" FontWeight="Medium" HorizontalAlignment="Center" />
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
+                <StackPanel Grid.Row="0" Spacing="4">
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="设置" />
+                    <TextBlock Style="{StaticResource SectionHintTextStyle}" Text="统一管理视觉表现，所有页面会在应用后即时同步。" />
                 </StackPanel>
-            </Border>
 
-        </StackPanel>
-    </ScrollViewer>
+                <Border Grid.Row="1" Style="{StaticResource GlassCardStyle}">
+                    <StackPanel Spacing="16">
+                        <TextBlock FontSize="20" FontWeight="SemiBold" Foreground="{ThemeResource AppTitleBrush}" Text="美观" />
+
+                        <StackPanel Spacing="10">
+                            <TextBlock Foreground="{ThemeResource AppTextBrush}" Text="主题色" />
+                            <Grid ColumnSpacing="10" RowSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <Button Grid.Row="0" Grid.Column="0" Tag="#0D5D56" Click="OnThemeColorClick" Style="{StaticResource SecondaryActionButtonStyle}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Ellipse Width="14" Height="14" Fill="#0D5D56" />
+                                        <TextBlock Text="青绿" />
+                                    </StackPanel>
+                                </Button>
+
+                                <Button Grid.Row="0" Grid.Column="1" Tag="#1E3A8A" Click="OnThemeColorClick" Style="{StaticResource SecondaryActionButtonStyle}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Ellipse Width="14" Height="14" Fill="#1E3A8A" />
+                                        <TextBlock Text="深海蓝" />
+                                    </StackPanel>
+                                </Button>
+
+                                <Button Grid.Row="1" Grid.Column="0" Tag="#B45309" Click="OnThemeColorClick" Style="{StaticResource SecondaryActionButtonStyle}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Ellipse Width="14" Height="14" Fill="#B45309" />
+                                        <TextBlock Text="琥珀棕" />
+                                    </StackPanel>
+                                </Button>
+
+                                <Button Grid.Row="1" Grid.Column="1" Tag="#A21CAF" Click="OnThemeColorClick" Style="{StaticResource SecondaryActionButtonStyle}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Ellipse Width="14" Height="14" Fill="#A21CAF" />
+                                        <TextBlock Text="莓紫" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                            <TextBlock x:Name="CurrentThemeColorText" Foreground="{ThemeResource AppMutedBrush}" FontSize="12" />
+                        </StackPanel>
+
+                        <Grid ColumnSpacing="20">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.2*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Spacing="8">
+                                <ToggleSwitch x:Name="EnableGlassSwitch" Header="毛玻璃 / 液态玻璃" />
+                                <ToggleSwitch x:Name="EnableHoverSwitch" Header="鼠标悬停反馈" />
+                                <ToggleSwitch x:Name="EnableAnimationSwitch" Header="动效细节" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="6">
+                                <TextBlock Text="阴影强度" Foreground="{ThemeResource AppTextBrush}" />
+                                <Slider x:Name="ShadowStrengthSlider" Minimum="0" Maximum="100" StepFrequency="5" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="2" Style="{StaticResource GlassCardStyle}">
+                    <StackPanel Spacing="10">
+                        <TextBlock FontSize="20" FontWeight="SemiBold" Foreground="{ThemeResource AppTitleBrush}" Text="性能" />
+                        <ToggleSwitch x:Name="HighQualityBlurSwitch" Header="启用高质量模糊" />
+                        <TextBlock Foreground="{ThemeResource AppMutedBrush}" Text="关闭后会自动使用更轻量的透明效果，适合长时间办公场景。" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="10">
+                    <Button Content="应用设置" Click="OnApplyClick" Style="{StaticResource PrimaryActionButtonStyle}" />
+                    <Button Content="恢复默认" Click="OnResetClick" Style="{StaticResource SecondaryActionButtonStyle}" />
+                    <TextBlock x:Name="SaveStateText" VerticalAlignment="Center" Foreground="{ThemeResource AppMutedBrush}" />
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
 </Page>

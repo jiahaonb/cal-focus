@@ -9,18 +9,22 @@ using WinRT.Interop;
 
 namespace CalFocus.App.Services;
 
-public sealed class ClockWidgetWindow : Window
+public sealed class PomodoroWidgetWindow : Window
 {
     private const int SW_HIDE = 0;
     private const int SW_SHOW = 5;
 
     private readonly WidgetInstance _widget;
     private readonly TextBlock _timeText;
-    private readonly TextBlock _dateText;
+    private readonly TextBox _minuteInput;
+    private readonly Button _startPauseButton;
     private readonly DispatcherTimer _timer;
     private readonly Border _innerCard;
     private readonly Border _outerCard;
-    private readonly Border _topGlow;
+    private readonly Border _glow;
+
+    private TimeSpan _remaining = TimeSpan.FromMinutes(15);
+    private bool _running;
 
     private AppWindow? _appWindow;
     private bool _placementInitialized;
@@ -29,100 +33,157 @@ public sealed class ClockWidgetWindow : Window
     public event Action<Guid>? WindowClosed;
     public event Action<Guid>? WidgetChanged;
 
-    public ClockWidgetWindow(WidgetInstance widget)
+    public PomodoroWidgetWindow(WidgetInstance widget)
     {
         _widget = widget;
         EnsureWidgetTint();
 
         _timeText = new TextBlock
         {
-            FontSize = 46,
+            Text = "15:00",
+            FontSize = 44,
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-            Foreground = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(248, 255, 255, 255)),
-            HorizontalAlignment = HorizontalAlignment.Center
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Foreground = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(248, 255, 255, 255))
         };
 
-        _dateText = new TextBlock
+        _minuteInput = new TextBox
         {
-            FontSize = 13,
-            Opacity = 0.9,
-            Foreground = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(220, 240, 248, 255)),
-            HorizontalAlignment = HorizontalAlignment.Center
+            Width = 96,
+            Text = "15",
+            HorizontalTextAlignment = TextAlignment.Center,
+            CornerRadius = new CornerRadius(12),
+            Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(96, 255, 255, 255)),
+            BorderBrush = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(120, 255, 255, 255)),
+            BorderThickness = new Thickness(1)
         };
+        _minuteInput.LostFocus += (_, _) => ApplyInputMinutes();
 
-        _topGlow = new Border
+        _startPauseButton = new Button
         {
-            Height = 46,
-            CornerRadius = new CornerRadius(32, 32, 22, 22),
-            VerticalAlignment = VerticalAlignment.Top,
-            Margin = new Thickness(10, 8, 10, 0),
-            Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(0, 0, 0, 0))
+            Content = "开始",
+            Padding = new Thickness(16, 8, 16, 8),
+            CornerRadius = new CornerRadius(12),
+            Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(116, 255, 255, 255)),
+            BorderBrush = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(132, 255, 255, 255)),
+            BorderThickness = new Thickness(1)
         };
+        _startPauseButton.Click += (_, _) => ToggleStartPause();
 
-        var contentStack = new StackPanel
+        var resetButton = new Button
         {
-            Spacing = 8,
-            Children =
-            {
-                new TextBlock
-                {
-                    Text = "时钟",
-                    FontSize = 14,
-                    Opacity = 0.88,
-                    Foreground = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(236, 229, 244, 255))
-                },
-                _timeText,
-                _dateText
-            }
+            Content = "重置",
+            Padding = new Thickness(16, 8, 16, 8),
+            CornerRadius = new CornerRadius(12),
+            Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(90, 255, 255, 255)),
+            BorderBrush = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(120, 255, 255, 255)),
+            BorderThickness = new Thickness(1)
+        };
+        resetButton.Click += (_, _) => Reset();
+
+        var timeRing = new Border
+        {
+            Width = 174,
+            Height = 174,
+            CornerRadius = new CornerRadius(87),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(66, 255, 255, 255)),
+            BorderBrush = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(145, 255, 255, 255)),
+            BorderThickness = new Thickness(1.2),
+            Child = _timeText
         };
 
         _innerCard = new Border
         {
-            CornerRadius = new CornerRadius(26),
-            BorderBrush = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(115, 255, 255, 255)),
+            CornerRadius = new CornerRadius(24),
+            BorderBrush = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(112, 255, 255, 255)),
             BorderThickness = new Thickness(1),
-            Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(84, 30, 44, 58)),
-            Padding = new Thickness(18, 14, 18, 16),
-            Child = contentStack
+            Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(84, 32, 46, 60)),
+            Padding = new Thickness(14),
+            Child = new StackPanel
+            {
+                Spacing = 10,
+                Children =
+                {
+                    new TextBlock
+                    {
+                        Text = "番茄钟",
+                        FontSize = 16,
+                        FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                        Foreground = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(240, 247, 252, 255))
+                    },
+                    timeRing,
+                    new StackPanel
+                    {
+                        Orientation = Orientation.Horizontal,
+                        Spacing = 6,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        Children =
+                        {
+                            new TextBlock
+                            {
+                                Text = "分钟",
+                                VerticalAlignment = VerticalAlignment.Center,
+                                Foreground = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(220, 237, 248, 255))
+                            },
+                            _minuteInput
+                        }
+                    },
+                    new StackPanel
+                    {
+                        Orientation = Orientation.Horizontal,
+                        Spacing = 8,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        Children =
+                        {
+                            _startPauseButton,
+                            resetButton
+                        }
+                    }
+                }
+            }
         };
 
         _outerCard = new Border
         {
-            CornerRadius = new CornerRadius(34),
-            BorderBrush = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(145, 255, 255, 255)),
+            CornerRadius = new CornerRadius(32),
+            BorderBrush = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(150, 255, 255, 255)),
             BorderThickness = new Thickness(1.2),
             Background = CreateGlassBrush(ResolveTintColor()),
             Padding = new Thickness(8),
             Child = _innerCard
         };
 
-        var menuButton = CreateMenuButton();
-
-        var root = new Grid
+        _glow = new Border
         {
-            Margin = new Thickness(4),
-            Children =
-            {
-                _outerCard,
-                _topGlow,
-                menuButton
-            }
+            Height = 44,
+            CornerRadius = new CornerRadius(30, 30, 20, 20),
+            VerticalAlignment = VerticalAlignment.Top,
+            Margin = new Thickness(12, 8, 12, 0),
+            Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(0, 0, 0, 0))
         };
 
-        Content = root;
-        Title = "Cal Focus Clock";
+        var menuButton = CreateMenuButton();
+
+        Content = new Grid
+        {
+            Margin = new Thickness(4),
+            Children = { _outerCard, _glow, menuButton }
+        };
+
+        Title = "Cal Focus Pomodoro";
 
         _timer = new DispatcherTimer
         {
             Interval = TimeSpan.FromSeconds(1)
         };
-        _timer.Tick += (_, _) => UpdateTime();
+        _timer.Tick += OnTimerTick;
 
         Activated += OnActivated;
         Closed += OnClosed;
 
-        UpdateTime();
-        _timer.Start();
+        UpdateDisplay();
         ApplyTintToVisuals();
     }
 
@@ -165,7 +226,6 @@ public sealed class ClockWidgetWindow : Window
         ConfigureWindowChrome();
 
         _appWindow.Changed += OnAppWindowChanged;
-
         _placementInitialized = true;
     }
 
@@ -224,10 +284,76 @@ public sealed class ClockWidgetWindow : Window
         }
     }
 
-    private void UpdateTime()
+    private void ToggleStartPause()
     {
-        _timeText.Text = DateTime.Now.ToString("HH:mm:ss");
-        _dateText.Text = DateTime.Now.ToString("MM月dd日 dddd", new System.Globalization.CultureInfo("zh-CN"));
+        if (_running)
+        {
+            _running = false;
+            _timer.Stop();
+            _startPauseButton.Content = "开始";
+            return;
+        }
+
+        _running = true;
+        _timer.Start();
+        _startPauseButton.Content = "暂停";
+    }
+
+    private void Reset()
+    {
+        _running = false;
+        _timer.Stop();
+        _startPauseButton.Content = "开始";
+        SetMinutes(GetInputMinutes());
+    }
+
+    private void ApplyInputMinutes()
+    {
+        SetMinutes(GetInputMinutes());
+    }
+
+    private int GetInputMinutes()
+    {
+        if (int.TryParse(_minuteInput.Text, out var minutes))
+        {
+            return minutes;
+        }
+
+        return 15;
+    }
+
+    private void SetMinutes(int minutes)
+    {
+        var safeMinutes = Math.Clamp(minutes, 1, 180);
+        _remaining = TimeSpan.FromMinutes(safeMinutes);
+        _minuteInput.Text = safeMinutes.ToString();
+        UpdateDisplay();
+    }
+
+    private void OnTimerTick(object? sender, object e)
+    {
+        if (!_running)
+        {
+            return;
+        }
+
+        if (_remaining <= TimeSpan.Zero)
+        {
+            _running = false;
+            _timer.Stop();
+            _startPauseButton.Content = "开始";
+            var app = (App)Application.Current;
+            app.ShowNotification("CalFocus 番茄钟", "番茄钟结束，休息一下再继续。" );
+            return;
+        }
+
+        _remaining -= TimeSpan.FromSeconds(1);
+        UpdateDisplay();
+    }
+
+    private void UpdateDisplay()
+    {
+        _timeText.Text = _remaining.ToString(@"mm\:ss");
     }
 
     private void ConfigureWindowChrome()
@@ -279,9 +405,9 @@ public sealed class ClockWidgetWindow : Window
         var flyout = new MenuFlyout();
 
         var sizeSubMenu = new MenuFlyoutSubItem { Text = "调整大小" };
-        sizeSubMenu.Items.Add(CreateSizeMenuItem("小 (260×150)", 260, 150));
-        sizeSubMenu.Items.Add(CreateSizeMenuItem("中 (320×180)", 320, 180));
-        sizeSubMenu.Items.Add(CreateSizeMenuItem("大 (380×220)", 380, 220));
+        sizeSubMenu.Items.Add(CreateSizeMenuItem("小 (280×210)", 280, 210));
+        sizeSubMenu.Items.Add(CreateSizeMenuItem("中 (340×250)", 340, 250));
+        sizeSubMenu.Items.Add(CreateSizeMenuItem("大 (400×300)", 400, 300));
 
         var colorSubMenu = new MenuFlyoutSubItem { Text = "修改组件颜色" };
         colorSubMenu.Items.Add(CreateColorMenuItem("跟随主题色", null));
@@ -345,7 +471,7 @@ public sealed class ClockWidgetWindow : Window
         var tintColor = ResolveTintColor();
         _outerCard.Background = CreateGlassBrush(tintColor);
         _innerCard.Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(98, tintColor.R, tintColor.G, tintColor.B));
-        _topGlow.Background = CreateTopGlowBrush(tintColor);
+        _glow.Background = CreateTopGlowBrush(tintColor);
     }
 
     private Color ResolveTintColor()

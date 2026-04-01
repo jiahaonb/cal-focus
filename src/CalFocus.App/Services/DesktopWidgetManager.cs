@@ -13,6 +13,7 @@ public sealed class DesktopWidgetManager
 
     private readonly Dictionary<Guid, ClockWidgetWindow> _clockWindows = new();
     private readonly Dictionary<Guid, ScheduleWidgetWindow> _scheduleWindows = new();
+    private readonly Dictionary<Guid, PomodoroWidgetWindow> _pomodoroWindows = new();
     private readonly HashSet<Guid> _closingByProgram = new();
 
     private readonly DispatcherTimer _displayWatchTimer;
@@ -66,6 +67,11 @@ public sealed class DesktopWidgetManager
         {
             window.SetVisibility(_allVisible);
         }
+
+        foreach (var window in _pomodoroWindows.Values)
+        {
+            window.SetVisibility(_allVisible);
+        }
     }
 
     private void OnWidgetsChanged()
@@ -94,6 +100,16 @@ public sealed class DesktopWidgetManager
             window.WidgetChanged += OnWidgetWindowChanged;
             _scheduleWindows[widget.Id] = window;
             window.Activate();
+            return;
+        }
+
+        if (string.Equals(widget.WidgetType, "Pomodoro", StringComparison.OrdinalIgnoreCase))
+        {
+            var window = new PomodoroWidgetWindow(widget);
+            window.WindowClosed += OnWidgetWindowClosedByUser;
+            window.WidgetChanged += OnWidgetWindowChanged;
+            _pomodoroWindows[widget.Id] = window;
+            window.Activate();
         }
     }
 
@@ -116,6 +132,16 @@ public sealed class DesktopWidgetManager
             scheduleWindow.WindowClosed -= OnWidgetWindowClosedByUser;
             scheduleWindow.WidgetChanged -= OnWidgetWindowChanged;
             _scheduleWindows.Remove(widgetId);
+            return;
+        }
+
+        if (_pomodoroWindows.TryGetValue(widgetId, out var pomodoroWindow))
+        {
+            _closingByProgram.Add(widgetId);
+            CloseWindowSafely(pomodoroWindow);
+            pomodoroWindow.WindowClosed -= OnWidgetWindowClosedByUser;
+            pomodoroWindow.WidgetChanged -= OnWidgetWindowChanged;
+            _pomodoroWindows.Remove(widgetId);
         }
     }
 
@@ -200,6 +226,12 @@ public sealed class DesktopWidgetManager
             if (_scheduleWindows.TryGetValue(widget.Id, out var scheduleWindow))
             {
                 scheduleWindow.ApplyWidgetPlacement();
+                continue;
+            }
+
+            if (_pomodoroWindows.TryGetValue(widget.Id, out var pomodoroWindow))
+            {
+                pomodoroWindow.ApplyWidgetPlacement();
             }
         }
 

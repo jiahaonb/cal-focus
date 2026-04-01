@@ -7,91 +7,137 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     mc:Ignorable="d"
     Background="{ThemeResource AppBackgroundBrush}">
-    
-    <ScrollViewer Padding="40" VerticalScrollBarVisibility="Auto">
-        <Grid ColumnSpacing="24" MaxWidth="1000" HorizontalAlignment="Left">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="400" />
-                <ColumnDefinition Width="400" />
-            </Grid.ColumnDefinitions>
-            
-            <!-- Todos -->
-            <StackPanel Grid.Column="0" Spacing="16">
-                <StackPanel Orientation="Horizontal" Spacing="12">
-                    <TextBlock Text="待办事项" FontSize="20" FontWeight="SemiBold" Foreground="{ThemeResource AppTitleBrush}" VerticalAlignment="Center" />
-                    <Border Background="{ThemeResource AppBrandBrush}" Opacity="0.8" CornerRadius="4" Padding="6,2">
-                        <TextBlock x:Name="TodoCountText" FontSize="12" Foreground="White" FontWeight="Bold" />
-                    </Border>
-                </StackPanel>
-                <ListView x:Name="TodoList" SelectionMode="None" IsItemClickEnabled="False">
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                            <Setter Property="Padding" Value="0" />
-                            <Setter Property="Margin" Value="0,0,0,8" />
-                        </Style>
-                    </ListView.ItemContainerStyle>
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Border Background="{ThemeResource AppCardBrush}" CornerRadius="8" Padding="16" BorderThickness="1" BorderBrush="{ThemeResource AppBorderBrush}">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <Button Content="&#xE10B;" FontFamily="Segoe MDL2 Assets" Background="Transparent" BorderThickness="0" Foreground="{ThemeResource AppBrandBrush}" Click="OnCompleteTodoClick" Tag="{Binding Id}" VerticalAlignment="Center" />
-                                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Title}" FontSize="16" Foreground="{ThemeResource AppTextBrush}" FontWeight="Medium" />
-                                        <TextBlock Text="{Binding Description}" FontSize="12" Foreground="{ThemeResource AppMutedBrush}" TextTrimming="CharacterEllipsis" />
-                                    </StackPanel>
-                                    <Button Grid.Column="2" Content="&#xE107;" FontFamily="Segoe MDL2 Assets" Background="Transparent" BorderThickness="0" Foreground="#EF4444" Click="OnDeleteTodoClick" Tag="{Binding Id}" VerticalAlignment="Center" />
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </StackPanel>
 
-            <!-- Reminders -->
-            <StackPanel Grid.Column="1" Spacing="16">
-                <StackPanel Orientation="Horizontal" Spacing="12">
-                    <TextBlock Text="重要提醒" FontSize="20" FontWeight="SemiBold" Foreground="{ThemeResource AppTitleBrush}" VerticalAlignment="Center" />
-                    <Border Background="{ThemeResource AppBrandBrush}" Opacity="0.8" CornerRadius="4" Padding="6,2">
-                        <TextBlock x:Name="ReminderCountText" FontSize="12" Foreground="White" FontWeight="Bold" />
-                    </Border>
-                </StackPanel>
-                <ListView x:Name="ReminderList" SelectionMode="None" IsItemClickEnabled="False">
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                            <Setter Property="Padding" Value="0" />
-                            <Setter Property="Margin" Value="0,0,0,8" />
-                        </Style>
-                    </ListView.ItemContainerStyle>
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Border Background="{ThemeResource AppCardBrush}" CornerRadius="8" Padding="16" BorderThickness="1" BorderBrush="{ThemeResource AppBorderBrush}">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="&#xEA8F;" FontFamily="Segoe MDL2 Assets" Foreground="#F59E0B" FontSize="20" VerticalAlignment="Center" />
-                                    <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Title}" FontSize="16" Foreground="{ThemeResource AppTextBrush}" FontWeight="Medium" />
-                                        <TextBlock Text="{Binding Time}" FontSize="12" Foreground="{ThemeResource AppMutedBrush}" />
-                                    </StackPanel>
-                                    <Button Grid.Column="2" Content="&#xE70F;" FontFamily="Segoe MDL2 Assets" Background="Transparent" BorderThickness="0" Foreground="{ThemeResource AppBrandBrush}" Click="OnEditReminderClick" Tag="{Binding Id}" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                                    <Button Grid.Column="3" Content="&#xE107;" FontFamily="Segoe MDL2 Assets" Background="Transparent" BorderThickness="0" Foreground="#EF4444" Click="OnDeleteReminderClick" Tag="{Binding Id}" VerticalAlignment="Center" />
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </StackPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Padding="26" RowSpacing="12" ColumnSpacing="12">
+            <VisualStateManager.VisualStateGroups>
+                <VisualStateGroup>
+                    <VisualState x:Name="SingleColumn" />
+                    <VisualState x:Name="TwoColumns">
+                        <VisualState.StateTriggers>
+                            <AdaptiveTrigger MinWindowWidth="1100" />
+                        </VisualState.StateTriggers>
+                        <VisualState.Setters>
+                            <Setter Target="TodoColumn.Width" Value="*" />
+                            <Setter Target="ReminderColumn.Width" Value="*" />
+                            <Setter Target="TodoPanel.(Grid.Column)" Value="0" />
+                            <Setter Target="TodoPanel.(Grid.Row)" Value="0" />
+                            <Setter Target="ReminderPanel.(Grid.Column)" Value="1" />
+                            <Setter Target="ReminderPanel.(Grid.Row)" Value="0" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="TodoColumn" Width="*" />
+                <ColumnDefinition x:Name="ReminderColumn" Width="0" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Border x:Name="TodoPanel" Grid.Column="0" Grid.Row="0" Style="{StaticResource GlassCardStyle}">
+                <Grid RowSpacing="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel>
+                            <TextBlock Text="待办" Style="{StaticResource SectionTitleTextStyle}" />
+                            <TextBlock x:Name="TodoCountText" Style="{StaticResource SectionHintTextStyle}" Text="共 0 项" />
+                        </StackPanel>
+
+                        <Button Grid.Column="1" Content="新增待办" Click="OnAddTodoClick" Style="{StaticResource PrimaryActionButtonStyle}" />
+                    </Grid>
+
+                    <ListView Grid.Row="1" x:Name="TodoList" SelectionMode="None" IsItemClickEnabled="False">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem" BasedOn="{StaticResource CardListItemContainerStyle}" />
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{Binding BackgroundBrush}" BorderThickness="1" BorderBrush="{ThemeResource AppBorderBrush}" CornerRadius="12" Padding="12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Spacing="4">
+                                            <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource AppTextBrush}" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding DisplayDdl}" FontSize="12" Foreground="{ThemeResource AppMutedBrush}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                            <Button Content="✔" Tag="{Binding Id}" Click="OnCompleteTodoClick" Style="{StaticResource SecondaryActionButtonStyle}" />
+                                            <Button Content="✕" Tag="{Binding Id}" Click="OnDeleteTodoClick" Style="{StaticResource SecondaryActionButtonStyle}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </Border>
+
+            <Border x:Name="ReminderPanel" Grid.Column="0" Grid.Row="1" Style="{StaticResource GlassCardStyle}">
+                <Grid RowSpacing="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel>
+                            <TextBlock Text="提醒" Style="{StaticResource SectionTitleTextStyle}" />
+                            <TextBlock x:Name="ReminderCountText" Style="{StaticResource SectionHintTextStyle}" Text="共 0 项" />
+                        </StackPanel>
+
+                        <Button Grid.Column="1" Content="新增提醒" Click="OnAddReminderClick" Style="{StaticResource PrimaryActionButtonStyle}" />
+                    </Grid>
+
+                    <ListView Grid.Row="1" x:Name="ReminderList" SelectionMode="None" IsItemClickEnabled="False">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem" BasedOn="{StaticResource CardListItemContainerStyle}" />
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource SurfaceCardStyle}" Padding="12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource AppTextBrush}" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding DisplayEventDate}" FontSize="12" Foreground="{ThemeResource AppMutedBrush}" />
+                                            <TextBlock Text="{Binding DisplayReminderDate}" FontSize="12" Foreground="{ThemeResource AppMutedBrush}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                            <Button Content="编辑" Tag="{Binding Id}" Click="OnEditReminderClick" Style="{StaticResource SecondaryActionButtonStyle}" />
+                                            <Button Content="删除" Tag="{Binding Id}" Click="OnDeleteReminderClick" Style="{StaticResource SecondaryActionButtonStyle}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </Border>
         </Grid>
     </ScrollViewer>
 </Page>

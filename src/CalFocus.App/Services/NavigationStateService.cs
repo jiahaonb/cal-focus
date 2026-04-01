@@ -20,12 +20,12 @@ public sealed class NavigationStateService
     {
         if (!File.Exists(_statePath))
         {
-            return "schedule";
+            return "home";
         }
 
         var json = File.ReadAllText(_statePath);
         var state = JsonSerializer.Deserialize<NavigationState>(json);
-        return string.IsNullOrWhiteSpace(state?.SelectedTag) ? "schedule" : state.SelectedTag;
+        return string.IsNullOrWhiteSpace(state?.SelectedTag) ? "home" : state.SelectedTag;
     }
 
     public void SaveSelectedTag(string tag)
